@@ -3,26 +3,30 @@
 
 :root {
   /* Colors */
-  --background: #0f0f0f;
-  --background-alt: #171717;
-  --foreground: #ededed;
-  --foreground-muted: #a0a0a0;
+  --background: #0a0a0f;
+  --background-alt: #12121a;
+  --background-card: rgba(18, 18, 26, 0.8);
+  --foreground: #f5f5f7;
+  --foreground-muted: #8b8b8b;
 
   /* Gradients */
-  --gradient-primary: linear-gradient(135deg, #8260e6 0%, #4d28bd 100%);
-  --gradient-accent: linear-gradient(135deg, #ff6b6b 0%, #ff3b3b 100%);
+  --gradient-primary: linear-gradient(135deg, #8b5cf6 0%, #6366f1 50%, #3b82f6 100%);
+  --gradient-secondary: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%);
+  --gradient-accent: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
 
   /* Spacing */
   --section-padding: 6rem;
-  --container-max: 1400px;
+  --container-max: 1280px;
 
   /* Typography */
   --font-primary: 'Inter', system-ui, -apple-system, sans-serif;
   --font-accent: 'DM Sans', sans-serif;
 
   /* Effects */
-  --blur-glass: blur(10px);
-  --shadow-glow: 0 0 30px rgba(130, 96, 230, 0.3);
+  --blur-glass: blur(20px);
+  --shadow-glow: 0 0 40px rgba(139, 92, 246, 0.3);
+  --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.3);
+  --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
 
 @theme inline {
@@ -60,6 +64,7 @@ h6 {
   font-family: var(--font-accent);
   font-weight: 700;
   line-height: 1.2;
+  letter-spacing: -0.02em;
 }
 
 /* Utility Classes */
@@ -81,9 +86,88 @@ h6 {
 }
 
 .glass {
-  background: rgba(23, 23, 23, 0.6);
+  background: var(--background-card);
   backdrop-filter: var(--blur-glass);
+  -webkit-backdrop-filter: var(--blur-glass);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: var(--shadow-card);
+}
+
+.glass-light {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* Button Styles */
+.btn-primary {
+  background: var(--gradient-primary);
+  color: white;
+  font-weight: 600;
+  padding: 0.875rem 2rem;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 25px rgba(139, 92, 246, 0.4);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--foreground);
+  font-weight: 500;
+  padding: 0.875rem 2rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+/* Card Styles */
+.card {
+  background: var(--background-card);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 2rem;
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  border-color: rgba(139, 92, 246, 0.3);
+  box-shadow: 0 0 30px rgba(139, 92, 246, 0.1);
+}
+
+/* Input Styles */
+.input {
+  width: 100%;
+  padding: 1rem 1.25rem;
+  background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  color: var(--foreground);
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.input::placeholder {
+  color: var(--foreground-muted);
+}
+
+.input:focus {
+  outline: none;
+  border-color: rgba(139, 92, 246, 0.5);
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
 }
 
 /* Animation Utilities */
@@ -111,8 +195,67 @@ h6 {
   }
 }
 
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
 .fade-in {
   animation: fadeIn 0.6s ease-out;
+}
+
+.shimmer {
+  background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.05) 50%,
+      transparent 100%);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+.float {
+  animation: float 6s ease-in-out infinite;
+}
+
+/* Selection */
+::selection {
+  background: rgba(139, 92, 246, 0.3);
+  color: white;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(139, 92, 246, 0.3);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(139, 92, 246, 0.5);
 }
 
 /* Responsive */
@@ -123,5 +266,13 @@ h6 {
 
   .container {
     padding: 0 1.5rem;
+  }
+
+  h1 {
+    font-size: 2.5rem;
+  }
+
+  h2 {
+    font-size: 2rem;
   }
 }
