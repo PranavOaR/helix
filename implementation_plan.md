@@ -24,12 +24,19 @@ A modern, animated landing page built with React, TypeScript, and Framer Motion,
 - **Fonts**: Inter (primary), DM Sans (accent)
 
 ### Design Direction
-Based on the Kyte template you provided, I'll create a **dark-themed, modern landing page** with:
+Based on the Kyte template and **your Helix brand logo**, I'll create a **dark-themed, modern landing page** with:
 - Dark background (#0f0f0f / #171717)
-- Accent color: Purple gradient (#8260e6 → #4d28bd)
+- **Brand colors from logo:**
+  - Primary Blue: #2196F3 → #1565C0
+  - Accent Orange: #FF9800 → #F57C00
+  - Accent Red: #E53935 → #B71C1C
+- Gradient accent: Blue → Orange → Red (matching the helix wave)
 - White/light text for contrast
 - Glassmorphism effects
 - Smooth scroll-triggered animations
+
+### Brand Assets
+- **Logo**: `assets/helix-logo.jpg` - Use in Navbar and Footer
 
 ---
 
