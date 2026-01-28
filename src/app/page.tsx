@@ -143,9 +143,6 @@ function Navbar() {
             <a href="#why-helix" className="text-sm text-brand-navy/60 hover:text-brand-navy transition-colors">
               Why Helix
             </a>
-            <a href="#testimonials" className="text-sm text-brand-navy/60 hover:text-brand-navy transition-colors">
-              Testimonials
-            </a>
           </div>
 
           {/* CTA & Mobile Menu */}
@@ -301,51 +298,6 @@ function Hero() {
       ref={heroRef}
       className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16 bg-white"
     >
-      {/* ==========================================
-          LAYER 1: Far Background Glow (Slowest)
-          ========================================== */}
-      <div
-        className="absolute inset-0 overflow-hidden pointer-events-none"
-        style={{
-          transform: getLayerTransform({
-            scrollStrength: 0.2,
-            mouseStrength: 0.15,
-            floatStrength: 0.3,
-          }),
-          willChange: 'transform',
-        }}
-      >
-        <div className="absolute top-1/4 left-1/4 w-[700px] h-[700px] bg-brand-orange/40 rounded-full blur-[140px]" />
-        <div className="absolute bottom-1/4 right-1/4 w-[600px] h-[600px] bg-brand-red-light/40 rounded-full blur-[140px]" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[900px] bg-brand-navy-light/40 rounded-full blur-[140px]" />
-      </div>
-
-      {/* ==========================================
-          LAYER 2: Mid Decorative Shapes
-          ========================================== */}
-      <div
-        className="absolute inset-0 overflow-hidden pointer-events-none"
-        style={{
-          transform: getLayerTransform({
-            scrollStrength: 0.35,
-            mouseStrength: 0.25,
-            floatStrength: 0.5,
-          }),
-          willChange: 'transform',
-        }}
-      >
-        {/* Abstract rings */}
-        <div className="absolute top-20 right-[15%] w-[300px] h-[300px] rounded-full border border-brand-orange/20" />
-        <div className="absolute bottom-32 left-[10%] w-[200px] h-[200px] rounded-full border border-brand-red-light/15" />
-        <div className="absolute top-[40%] right-[5%] w-[150px] h-[150px] rounded-full border border-brand-navy/5" />
-
-        {/* Gradient orbs */}
-        <div className="absolute top-1/3 right-[20%] w-[100px] h-[100px] bg-gradient-to-br from-brand-orange/30 to-transparent rounded-full blur-xl" />
-        <div className="absolute bottom-1/3 left-[15%] w-[80px] h-[80px] bg-gradient-to-br from-brand-red-light/25 to-transparent rounded-full blur-lg" />
-      </div>
-
-      {/* Grid Pattern (Static) */}
-      <div className="absolute inset-0 bg-[linear-gradient(rgba(15,23,42,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.03)_1px,transparent_1px)] bg-[size:60px_60px]" />
 
       {/* ==========================================
           LAYER 3: Main Content (Medium Movement)
@@ -371,12 +323,6 @@ function Hero() {
             variants={staggerContainer}
             className="text-center lg:text-left"
           >
-            {/* Badge */}
-            <motion.div variants={fadeInUp} className="inline-flex items-center gap-2 px-4 py-2 bg-brand-navy/5 border border-brand-navy/10 rounded-full mb-8">
-              <span className="w-2 h-2 bg-brand-orange rounded-full animate-pulse" />
-              <span className="text-sm text-brand-navy/80">Now accepting new brands</span>
-            </motion.div>
-
             {/* Headline */}
             <motion.h1
               variants={fadeInUp}
@@ -411,94 +357,25 @@ function Hero() {
           </motion.div>
 
           {/* ==========================================
-              LAYER 4: Foreground Floating Elements
+              LAYER 4: Static Helix Logo (Clean & Minimal)
               ========================================== */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.8, rotate: -5 }}
-            animate={{ opacity: 1, scale: 1, rotate: 0 }}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
             className="relative hidden lg:flex items-center justify-center"
           >
-            <div className="relative w-[450px] h-[450px]">
-              {/* Outer Ring - Very slow movement */}
-              <div
-                className="absolute inset-0 rounded-full border-2 border-dashed border-white/10"
-                style={{
-                  transform: `translate3d(${mouseX * 0.1}px, ${mouseY * 0.1 + floatY * 0.3}px, 0) rotate(${scrollProgress * 30}deg)`,
-                  willChange: 'transform',
-                }}
+            <div className="relative w-[300px] h-[300px] flex items-center justify-center">
+              {/* Subtle glow behind logo */}
+              <div className="absolute w-48 h-48 bg-gradient-to-br from-brand-orange/20 to-brand-red-light/15 rounded-full blur-3xl" />
+              <Image
+                src="/logo.png"
+                alt="Helix Logo"
+                width={200}
+                height={200}
+                priority
+                className="relative z-10 object-contain"
               />
-
-              {/* Middle Ring - Medium movement */}
-              <div
-                className="absolute inset-8 rounded-full border border-brand-orange/30"
-                style={{
-                  transform: `translate3d(${mouseX * 0.2}px, ${mouseY * 0.2 + floatY * 0.5}px, 0)`,
-                  willChange: 'transform',
-                }}
-              />
-
-              {/* Inner Glow */}
-              <div
-                className="absolute inset-16 rounded-full bg-gradient-to-br from-brand-orange/20 to-brand-red-light/20 blur-xl"
-                style={{
-                  transform: `translate3d(${mouseX * 0.15}px, ${mouseY * 0.15 + floatY * 0.4}px, 0)`,
-                  willChange: 'transform',
-                }}
-              />
-
-              {/* Center Logo - Replace H with actual logo */}
-              <div
-                className="absolute inset-0 flex items-center justify-center"
-                style={{
-                  transform: `translate3d(${mouseX * 0.05}px, ${mouseY * 0.05}px, 0)`,
-                  willChange: 'transform',
-                }}
-              >
-                {/* Logo glow effect */}
-                <div className="absolute w-48 h-48 bg-gradient-to-br from-brand-orange/40 to-brand-red-light/30 rounded-full blur-3xl" />
-                <Image
-                  src="/logo.png"
-                  alt="Helix Logo"
-                  width={160}
-                  height={160}
-                  priority
-                  className="relative z-10 object-contain drop-shadow-[0_0_40px_rgba(224,86,43,0.4)] mix-blend-multiply"
-                />
-              </div>
-
-              {/* Floating Icon 1 - Fast movement */}
-              <div
-                className="absolute top-20 right-16 w-12 h-12 rounded-xl bg-brand-navy border border-white/10 flex items-center justify-center"
-                style={{
-                  transform: `translate3d(${mouseX * 0.6 + floatX * 0.8}px, ${mouseY * 0.6 + floatY * 1.2}px, 0)`,
-                  willChange: 'transform',
-                }}
-              >
-                <Globe className="w-6 h-6 text-brand-orange" />
-              </div>
-
-              {/* Floating Icon 2 - Medium-fast movement */}
-              <div
-                className="absolute bottom-24 left-12 w-12 h-12 rounded-xl bg-brand-navy border border-white/10 flex items-center justify-center"
-                style={{
-                  transform: `translate3d(${mouseX * 0.5 - floatX * 0.6}px, ${mouseY * 0.5 - floatY * 1}px, 0)`,
-                  willChange: 'transform',
-                }}
-              >
-                <Palette className="w-6 h-6 text-brand-red-light" />
-              </div>
-
-              {/* Floating Icon 3 - Different movement pattern */}
-              <div
-                className="absolute top-1/2 right-4 w-12 h-12 rounded-xl bg-brand-navy border border-white/10 flex items-center justify-center"
-                style={{
-                  transform: `translate3d(${mouseX * 0.7 + floatX * 0.5}px, ${mouseY * 0.7 - floatY * 0.8}px, 0)`,
-                  willChange: 'transform',
-                }}
-              >
-                <Smartphone className="w-6 h-6 text-brand-orange-light" />
-              </div>
             </div>
           </motion.div>
         </div>
@@ -568,7 +445,7 @@ function ServicesSection() {
       title: "Website Development",
       category: "Development",
       description: "Custom, responsive websites built with modern technologies for optimal performance and user experience.",
-      image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=600&fit=crop",
+      image: "/images/webdev.png",
       details: {
         intro: "We build lightning-fast, SEO-optimized websites that convert visitors into customers.",
         features: [
@@ -586,7 +463,7 @@ function ServicesSection() {
       title: "UI/UX Design",
       category: "Design",
       description: "Intuitive interfaces and seamless experiences that delight users and drive conversions.",
-      image: "https://images.unsplash.com/photo-1561070791-2526d30994b5?w=800&h=600&fit=crop",
+      image: "/images/uiux.jpg",
       details: {
         intro: "Create memorable digital experiences with user-centered design that drives engagement and conversions.",
         features: [
@@ -604,7 +481,7 @@ function ServicesSection() {
       title: "Branding & Identity",
       category: "Branding",
       description: "Memorable brand identities that tell your story and connect with your target audience.",
-      image: "https://images.unsplash.com/photo-1558655146-9f40138edfeb?w=800&h=600&fit=crop",
+      image: "/images/brand.jpg",
       details: {
         intro: "Build a brand that resonates with your audience and stands out in a crowded market.",
         features: [
@@ -622,7 +499,7 @@ function ServicesSection() {
       title: "App Development",
       category: "Development",
       description: "Native and cross-platform mobile applications that engage users on any device.",
-      image: "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=800&h=600&fit=crop",
+      image: "/images/app.png",
       details: {
         intro: "Launch powerful mobile applications that your users will love and keep coming back to.",
         features: [
@@ -640,7 +517,7 @@ function ServicesSection() {
       title: "Canva & Social Creatives",
       category: "Marketing",
       description: "Eye-catching social media graphics and marketing materials that stand out.",
-      image: "https://images.unsplash.com/photo-1611162616305-c69b3fa7fbe0?w=800&h=600&fit=crop",
+      image: "/images/canva.jpg",
       details: {
         intro: "Elevate your social media presence with scroll-stopping graphics and cohesive visual content.",
         features: [
@@ -730,16 +607,6 @@ function ServicesSection() {
 
                 <h4>Our Process</h4>
                 <p>{service.details.process}</p>
-
-                <div className="pt-4 mt-4 border-t border-brand-navy/10">
-                  <Link 
-                    href="/auth" 
-                    className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-brand-orange to-brand-red-light text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-brand-orange/30 transition-all"
-                  >
-                    Get Started with {service.title}
-                    <ArrowRight className="w-4 h-4" />
-                  </Link>
-                </div>
               </ExpandableCard>
             </motion.div>
           ))}
@@ -865,10 +732,10 @@ function HowItWorksSection() {
 // ============================================
 function ProjectTrackingSection() {
   const statuses = [
-    { label: "Submitted", icon: "✅", color: "text-brand-navy-light", bg: "bg-brand-navy-light/10" },
-    { label: "In Progress", icon: "🟡", color: "text-brand-orange", bg: "bg-brand-orange/10" },
-    { label: "Review", icon: "🔵", color: "text-brand-orange-light", bg: "bg-brand-orange-light/10" },
-    { label: "Completed", icon: "✅", color: "text-brand-red-light", bg: "bg-brand-red-light/10" },
+    { label: "Submitted", dotColor: "bg-emerald-500", color: "text-brand-navy-light", bg: "bg-brand-navy-light/10" },
+    { label: "In Progress", dotColor: "bg-amber-500", color: "text-brand-orange", bg: "bg-brand-orange/10" },
+    { label: "Review", dotColor: "bg-blue-500", color: "text-brand-orange-light", bg: "bg-brand-orange-light/10" },
+    { label: "Completed", dotColor: "bg-brand-orange", color: "text-brand-red-light", bg: "bg-brand-red-light/10" },
   ];
 
   const { ref, translateY, scrollProgress } = useParallax(0.4);
@@ -967,7 +834,7 @@ function ProjectTrackingSection() {
                     key={index}
                     className={`flex items-center gap-4 p-4 rounded-xl ${status.bg} border border-white/5`}
                   >
-                    <span className="text-xl">{status.icon}</span>
+                    <span className={`w-3 h-3 rounded-full ${status.dotColor}`} />
                     <span className={`font-medium ${status.color}`}>{status.label}</span>
                     {index < 2 && (
                       <span className="ml-auto text-xs text-white/40">Completed</span>
@@ -1297,12 +1164,10 @@ export default function Home() {
     <main className="bg-background min-h-screen overflow-x-hidden">
       <Navbar />
       <Hero />
-      <TrustSection />
       <ServicesSection />
       <HowItWorksSection />
       <ProjectTrackingSection />
       <WhyHelixSection />
-      <TestimonialsSection />
       <FinalCTASection />
       <Footer />
     </main>

@@ -74,7 +74,7 @@ export function ExpandableCard({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/90 backdrop-blur-sm h-full w-full z-[90]"
+            className="fixed inset-0 bg-black/50 h-full w-full z-[90]"
           />
         )}
       </AnimatePresence>
@@ -82,33 +82,32 @@ export function ExpandableCard({
       {/* Expanded Card Modal */}
       <AnimatePresence>
         {active && (
-          <div className="fixed inset-0 z-[100] overflow-y-auto py-8 px-4 sm:py-12 sm:px-8">
-            <div className="min-h-full flex items-center justify-center">
-              <motion.div
-                layoutId={`card-${title}-${id}`}
-                ref={cardRef}
-                className={cn(
-                  "w-full max-w-[900px] flex flex-col rounded-2xl bg-white shadow-2xl relative",
-                  classNameExpanded
-                )}
-                {...props}
-              >
-                {/* Image Section */}
-                <motion.div layoutId={`image-${title}-${id}`} className="flex-shrink-0">
-                  <div className="relative">
-                    <img
-                      src={src}
-                      alt={title}
-                      className="w-full h-48 sm:h-64 object-cover object-center rounded-t-2xl"
-                    />
-                    {/* Gradient overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent" />
-                  </div>
-                </motion.div>
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-8">
+            <motion.div
+              layoutId={`card-${title}-${id}`}
+              ref={cardRef}
+              className={cn(
+                "w-full max-w-[900px] max-h-[80vh] flex flex-col rounded-2xl bg-white shadow-xl border border-gray-200 relative overflow-hidden",
+                classNameExpanded
+              )}
+              {...props}
+            >
+              {/* Image Section */}
+              <motion.div layoutId={`image-${title}-${id}`} className="flex-shrink-0 overflow-hidden rounded-t-2xl">
+                <div className="relative h-48 sm:h-56 w-full overflow-hidden">
+                  <img
+                    src={src}
+                    alt={title}
+                    className="w-full h-full object-cover object-center"
+                  />
+                  {/* Gradient overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent" />
+                </div>
+              </motion.div>
 
-              {/* Content Section */}
-              <div className="relative flex-1">
-                <div className="flex justify-between items-start p-6 sm:p-8">
+              {/* Scrollable Content Section */}
+              <div className="relative flex-1 overflow-y-auto">
+                <div className="flex justify-between items-start p-6 sm:p-8 sticky top-0 bg-white z-10 border-b border-gray-100">
                   <div className="flex-1">
                     <motion.p
                       layoutId={`description-${description}-${id}`}
@@ -128,7 +127,7 @@ export function ExpandableCard({
                   <motion.button
                     aria-label="Close card"
                     layoutId={`button-${title}-${id}`}
-                    className="h-10 w-10 shrink-0 flex items-center justify-center rounded-full bg-brand-navy/5 text-brand-navy hover:bg-brand-orange hover:text-white border border-brand-navy/10 hover:border-brand-orange transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-brand-orange ml-4"
+                    className="h-10 w-10 shrink-0 flex items-center justify-center rounded-full bg-gray-100 text-brand-navy hover:bg-brand-orange hover:text-white border border-gray-200 hover:border-brand-orange transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-brand-orange ml-4"
                     onClick={() => setActive(false)}
                   >
                     <X className="w-5 h-5" />
@@ -136,7 +135,7 @@ export function ExpandableCard({
                 </div>
 
                 {/* Expanded Content */}
-                <div className="px-6 sm:px-8 pb-8">
+                <div className="px-6 sm:px-8 pb-8 pt-6 bg-white">
                   <motion.div
                     layout
                     initial={{ opacity: 0 }}
@@ -149,7 +148,6 @@ export function ExpandableCard({
                 </div>
               </div>
             </motion.div>
-            </div>
           </div>
         )}
       </AnimatePresence>

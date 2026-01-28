@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Eye, EyeOff, Mail, Lock, Building2, Chrome, Loader2, AlertCircle, CheckCircle } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
@@ -184,11 +185,15 @@ export default function AuthPage() {
           <div className="relative">
             {/* Logo & Branding */}
             <div className="text-center mb-8">
-              <Link href="/" className="inline-flex items-center gap-2 mb-4">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-orange to-brand-red-light flex items-center justify-center shadow-lg shadow-brand-orange/25">
-                  <span className="text-white font-bold text-lg">H</span>
-                </div>
-                <span className="text-2xl font-bold text-brand-orange">Helix</span>
+              <Link href="/" className="inline-block mb-4">
+                <Image
+                  src="/logo.png"
+                  alt="Helix"
+                  width={120}
+                  height={48}
+                  className="h-12 w-auto mx-auto"
+                  priority
+                />
               </Link>
               <p className="text-brand-orange text-sm">
                 Sign in to manage your brand projects
