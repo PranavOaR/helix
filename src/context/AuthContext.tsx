@@ -1,19 +1,16 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
-import {
-  User,
-  onAuthStateChanged,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  signOut,
-  signInWithPopup,
-  GoogleAuthProvider,
-} from "firebase/auth";
-import { auth, googleProvider } from "@/lib/firebase";
+import { createContext, useContext, useState, ReactNode } from "react";
+
+// Mock user type (mimics Firebase User structure)
+interface MockUser {
+  uid: string;
+  email: string | null;
+  displayName: string | null;
+}
 
 interface AuthContextType {
-  user: User | null;
+  user: MockUser | null;
   loading: boolean;
   signUp: (email: string, password: string) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
@@ -23,33 +20,43 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Mock Auth Provider - works without Firebase credentials
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, []);
+  const [user, setUser] = useState<MockUser | null>(null);
+  const [loading] = useState(false);
 
   const signUp = async (email: string, password: string) => {
-    await createUserWithEmailAndPassword(auth, email, password);
+    // Mock sign up - simulate delay then set user
+    await new Promise(resolve => setTimeout(resolve, 500));
+    setUser({
+      uid: "mock-user-" + Date.now(),
+      email: email,
+      displayName: email.split("@")[0],
+    });
   };
 
   const login = async (email: string, password: string) => {
-    await signInWithEmailAndPassword(auth, email, password);
+    // Mock login - simulate delay then set user
+    await new Promise(resolve => setTimeout(resolve, 500));
+    setUser({
+      uid: "mock-user-" + Date.now(),
+      email: email,
+      displayName: email.split("@")[0],
+    });
   };
 
   const loginWithGoogle = async () => {
-    await signInWithPopup(auth, googleProvider);
+    // Mock Google login
+    await new Promise(resolve => setTimeout(resolve, 500));
+    setUser({
+      uid: "google-mock-user-" + Date.now(),
+      email: "demo@gmail.com",
+      displayName: "Demo User",
+    });
   };
 
   const logout = async () => {
-    await signOut(auth);
+    setUser(null);
   };
 
   return (

@@ -1,6 +1,7 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, type Variants } from "framer-motion";
+import { useRef, useEffect, useState, useCallback } from "react";
 import {
   Globe,
   Palette,
@@ -21,24 +22,77 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
-// Animation variants
-const fadeInUp = {
+// Animation variants with proper typing
+const fadeInUp: Variants = {
   hidden: { opacity: 0, y: 40 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] } },
 };
 
-const fadeIn = {
+const fadeIn: Variants = {
   hidden: { opacity: 0 },
   visible: { opacity: 1, transition: { duration: 0.6 } },
 };
 
-const staggerContainer = {
+const staggerContainer: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
     transition: { staggerChildren: 0.1 },
   },
 };
+
+// Custom hook for parallax scroll effect
+function useParallax(speed: number = 0.5) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [scrollProgress, setScrollProgress] = useState(0);
+
+  useEffect(() => {
+    let ticking = false;
+    let animationFrameId: number;
+
+    const handleScroll = () => {
+      if (!ticking) {
+        animationFrameId = requestAnimationFrame(() => {
+          if (!ref.current) {
+            ticking = false;
+            return;
+          }
+
+          const element = ref.current;
+          const rect = element.getBoundingClientRect();
+          const windowHeight = window.innerHeight;
+
+          // Calculate how far through the viewport the element is
+          // 0 = element just entering viewport from bottom
+          // 1 = element just leaving viewport from top
+          const progress = Math.min(
+            Math.max((windowHeight - rect.top) / (windowHeight + rect.height), 0),
+            1
+          );
+
+          setScrollProgress(progress);
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('resize', handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleScroll);
+      if (animationFrameId) cancelAnimationFrame(animationFrameId);
+    };
+  }, []);
+
+  // Calculate transform values based on scroll progress
+  const translateY = (scrollProgress - 0.5) * speed * 100; // parallax offset
+
+  return { ref, scrollProgress, translateY };
+}
 
 // ============================================
 // NAVBAR
@@ -88,13 +142,94 @@ function Navbar() {
 }
 
 // ============================================
-// HERO SECTION
+// HERO SECTION - Pure React Parallax (No External Libraries)
 // ============================================
 function Hero() {
+  const heroRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const bgRef = useRef<HTMLDivElement>(null);
+  const [isInView, setIsInView] = useState(true);
+
+  useEffect(() => {
+    let animationFrameId: number;
+    let ticking = false;
+
+    const handleScroll = () => {
+      if (!ticking) {
+        animationFrameId = requestAnimationFrame(() => {
+          const scrollY = window.scrollY;
+          const heroElement = heroRef.current;
+          const contentElement = contentRef.current;
+          const bgElement = bgRef.current;
+
+          if (!heroElement || !contentElement || !bgElement) {
+            ticking = false;
+            return;
+          }
+
+          const heroHeight = heroElement.offsetHeight;
+          const heroBottom = heroElement.offsetTop + heroHeight;
+
+          // Only animate while hero is in view (pro optimization)
+          if (scrollY > heroBottom) {
+            setIsInView(false);
+            ticking = false;
+            return;
+          } else {
+            setIsInView(true);
+          }
+
+          // Calculate scroll progress (0 to 1) relative to hero
+          const scrollProgress = Math.min(scrollY / heroHeight, 1);
+
+          // Content parallax transforms
+          // TranslateY: moves DOWN slower than scroll (creates depth)
+          const translateY = scrollProgress * 150; // Max 150px
+
+          // Scale: shrinks from 1 to 0.85 (clamped)
+          const scale = Math.max(1 - scrollProgress * 0.15, 0.85);
+
+          // Opacity: fades from 1 to 0
+          const opacity = Math.max(1 - scrollProgress * 1.2, 0);
+
+          // Background parallax (slower movement for depth)
+          const bgTranslateY = scrollProgress * 80; // Slower than content
+
+          // Apply transforms using native JS (no library)
+          contentElement.style.transform = `translateY(${translateY}px) scale(${scale})`;
+          contentElement.style.opacity = `${opacity}`;
+          bgElement.style.transform = `translateY(${bgTranslateY}px)`;
+
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+
+    // Initialize scroll position on mount
+    handleScroll();
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
+    };
+  }, []);
+
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16">
-      {/* Background Gradient Glow */}
-      <div className="absolute inset-0 overflow-hidden">
+    <section
+      ref={heroRef}
+      className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16"
+    >
+      {/* Background Gradient Glow - with slower parallax */}
+      <div
+        ref={bgRef}
+        className="absolute inset-0 overflow-hidden"
+        style={{ willChange: 'transform' }}
+      >
         <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-tangerine/20 rounded-full blur-[150px]" />
         <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-rose/15 rounded-full blur-[150px]" />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-navy-light/50 rounded-full blur-[200px]" />
@@ -103,7 +238,12 @@ function Hero() {
       {/* Grid Pattern */}
       <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:60px_60px]" />
 
-      <div className="relative max-w-7xl mx-auto px-6 lg:px-8 py-24">
+      {/* Content wrapper with parallax transforms */}
+      <div
+        ref={contentRef}
+        className="relative max-w-7xl mx-auto px-6 lg:px-8 py-24"
+        style={{ willChange: 'transform, opacity' }}
+      >
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Left Content */}
           <motion.div
@@ -138,7 +278,7 @@ function Hero() {
               Helix is your all-in-one platform to request creative services and track projects seamlessly. From websites to branding, we&apos;ve got you covered.
             </motion.p>
 
-            {/* CTAs */}
+            {/* CTAs - Two call-to-action buttons */}
             <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start">
               <Link href="/auth" className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-tangerine to-rose text-white font-semibold rounded-xl hover:shadow-2xl hover:shadow-tangerine/30 transition-all hover:-translate-y-0.5 flex items-center justify-center gap-2">
                 Get Started
@@ -161,13 +301,13 @@ function Hero() {
             <div className="relative w-[450px] h-[450px]">
               {/* Outer Ring */}
               <div className="absolute inset-0 rounded-full border-2 border-dashed border-white/10 animate-spin" style={{ animationDuration: "30s" }} />
-              
+
               {/* Middle Ring */}
               <div className="absolute inset-8 rounded-full border border-tangerine/30" />
-              
+
               {/* Inner Glow */}
               <div className="absolute inset-16 rounded-full bg-gradient-to-br from-tangerine/20 to-rose/20 blur-xl" />
-              
+
               {/* Center Logo */}
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="w-32 h-32 rounded-2xl bg-gradient-to-br from-tangerine to-rose flex items-center justify-center shadow-2xl shadow-tangerine/30">
@@ -212,10 +352,18 @@ function Hero() {
 // ============================================
 function TrustSection() {
   const brands = ["TechFlow", "Brandify", "StartupX", "DesignCo", "LaunchPad"];
+  const { ref, translateY } = useParallax(0.3);
 
   return (
-    <section className="py-16 border-y border-white/5 bg-navy/30">
-      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+    <section className="py-16 border-y border-white/5 bg-navy/30 overflow-hidden">
+      <div
+        ref={ref}
+        className="max-w-7xl mx-auto px-6 lg:px-8"
+        style={{
+          transform: `translateY(${translateY}px)`,
+          willChange: 'transform'
+        }}
+      >
         <motion.div
           initial="hidden"
           whileInView="visible"
@@ -274,9 +422,30 @@ function ServicesSection() {
     },
   ];
 
+  const { ref, translateY } = useParallax(0.4);
+
   return (
-    <section id="services" className="py-24 relative">
-      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+    <section id="services" className="py-24 relative overflow-hidden">
+      {/* Parallax Background Element */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          transform: `translateY(${translateY * 0.5}px)`,
+          willChange: 'transform'
+        }}
+      >
+        <div className="absolute top-1/4 right-0 w-[400px] h-[400px] bg-tangerine/5 rounded-full blur-[120px]" />
+        <div className="absolute bottom-1/4 left-0 w-[300px] h-[300px] bg-rose/5 rounded-full blur-[100px]" />
+      </div>
+
+      <div
+        ref={ref}
+        className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10"
+        style={{
+          transform: `translateY(${translateY}px)`,
+          willChange: 'transform'
+        }}
+      >
         {/* Header */}
         <motion.div
           initial="hidden"
@@ -349,9 +518,18 @@ function HowItWorksSection() {
     },
   ];
 
+  const { ref, translateY } = useParallax(0.35);
+
   return (
-    <section id="how-it-works" className="py-24 bg-navy/30">
-      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+    <section id="how-it-works" className="py-24 bg-navy/30 overflow-hidden">
+      <div
+        ref={ref}
+        className="max-w-7xl mx-auto px-6 lg:px-8"
+        style={{
+          transform: `translateY(${translateY}px)`,
+          willChange: 'transform'
+        }}
+      >
         {/* Header */}
         <motion.div
           initial="hidden"
@@ -393,7 +571,7 @@ function HowItWorksSection() {
               <div className="relative p-8 bg-gradient-to-br from-navy-light/80 to-navy-light/40 border border-white/5 rounded-2xl overflow-hidden group hover:border-tangerine/20 transition-all">
                 {/* Gradient Border Effect */}
                 <div className="absolute inset-0 bg-gradient-to-br from-tangerine/5 to-rose/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                
+
                 <div className="relative">
                   {/* Step Number */}
                   <div className="flex items-center gap-4 mb-6">
@@ -428,9 +606,30 @@ function ProjectTrackingSection() {
     { label: "Completed", icon: "✅", color: "text-emerald-400", bg: "bg-emerald-400/10" },
   ];
 
+  const { ref, translateY, scrollProgress } = useParallax(0.4);
+
   return (
-    <section className="py-24">
-      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+    <section className="py-24 overflow-hidden">
+      {/* Parallax Background Elements */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          transform: `translateY(${translateY * 0.3}px)`,
+          willChange: 'transform'
+        }}
+      >
+        <div className="absolute top-1/3 left-1/4 w-[500px] h-[500px] bg-tangerine/5 rounded-full blur-[150px]" />
+        <div className="absolute bottom-1/3 right-1/4 w-[400px] h-[400px] bg-rose/5 rounded-full blur-[120px]" />
+      </div>
+
+      <div
+        ref={ref}
+        className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10"
+        style={{
+          transform: `translateY(${translateY}px)`,
+          willChange: 'transform'
+        }}
+      >
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Left - Text */}
           <motion.div
@@ -471,6 +670,10 @@ function ProjectTrackingSection() {
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.6 }}
             className="relative"
+            style={{
+              transform: `translateY(${(scrollProgress - 0.5) * -20}px)`,
+              willChange: 'transform'
+            }}
           >
             <div className="p-8 bg-navy-light border border-white/10 rounded-2xl shadow-2xl">
               {/* Header */}
@@ -553,9 +756,18 @@ function WhyHelixSection() {
     },
   ];
 
+  const { ref, translateY } = useParallax(0.35);
+
   return (
-    <section id="why-helix" className="py-24 bg-navy/30">
-      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+    <section id="why-helix" className="py-24 bg-navy/30 overflow-hidden">
+      <div
+        ref={ref}
+        className="max-w-7xl mx-auto px-6 lg:px-8"
+        style={{
+          transform: `translateY(${translateY}px)`,
+          willChange: 'transform'
+        }}
+      >
         {/* Header */}
         <motion.div
           initial="hidden"
@@ -628,9 +840,30 @@ function TestimonialsSection() {
     },
   ];
 
+  const { ref, translateY } = useParallax(0.3);
+
   return (
-    <section id="testimonials" className="py-24">
-      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+    <section id="testimonials" className="py-24 overflow-hidden relative">
+      {/* Parallax Background Elements */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          transform: `translateY(${translateY * 0.5}px)`,
+          willChange: 'transform'
+        }}
+      >
+        <div className="absolute top-1/4 left-0 w-[400px] h-[400px] bg-tangerine/5 rounded-full blur-[150px]" />
+        <div className="absolute bottom-1/4 right-0 w-[350px] h-[350px] bg-rose/5 rounded-full blur-[120px]" />
+      </div>
+
+      <div
+        ref={ref}
+        className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10"
+        style={{
+          transform: `translateY(${translateY}px)`,
+          willChange: 'transform'
+        }}
+      >
         {/* Header */}
         <motion.div
           initial="hidden"
@@ -696,9 +929,18 @@ function TestimonialsSection() {
 // FINAL CTA SECTION
 // ============================================
 function FinalCTASection() {
+  const { ref, translateY } = useParallax(0.25);
+
   return (
-    <section className="py-24">
-      <div className="max-w-5xl mx-auto px-6 lg:px-8">
+    <section className="py-24 overflow-hidden">
+      <div
+        ref={ref}
+        className="max-w-5xl mx-auto px-6 lg:px-8"
+        style={{
+          transform: `translateY(${translateY}px)`,
+          willChange: 'transform'
+        }}
+      >
         <motion.div
           initial="hidden"
           whileInView="visible"
