@@ -41,10 +41,16 @@ const staggerContainer: Variants = {
   },
 };
 
-// Custom hook for parallax scroll effect
-function useParallax(speed: number = 0.5) {
+// Custom hook for parallax scroll effect with smoothstep easing
+function useParallax(speed: number = 0.5, maxOffset: number = 150) {
   const ref = useRef<HTMLDivElement>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
+
+  // Smoothstep easing function for premium feel
+  const smoothstep = (x: number) => {
+    const clamped = Math.max(0, Math.min(1, x));
+    return clamped * clamped * (3 - 2 * clamped);
+  };
 
   useEffect(() => {
     let ticking = false;
@@ -65,12 +71,14 @@ function useParallax(speed: number = 0.5) {
           // Calculate how far through the viewport the element is
           // 0 = element just entering viewport from bottom
           // 1 = element just leaving viewport from top
-          const progress = Math.min(
+          const rawProgress = Math.min(
             Math.max((windowHeight - rect.top) / (windowHeight + rect.height), 0),
             1
           );
 
-          setScrollProgress(progress);
+          // Apply smoothstep for non-linear, premium motion
+          const easedProgress = smoothstep(rawProgress);
+          setScrollProgress(easedProgress);
           ticking = false;
         });
         ticking = true;
@@ -88,8 +96,9 @@ function useParallax(speed: number = 0.5) {
     };
   }, []);
 
-  // Calculate transform values based on scroll progress
-  const translateY = (scrollProgress - 0.5) * speed * 100; // parallax offset
+  // Calculate transform values with larger range for visible parallax
+  // Center around 0.5 so elements move in both directions
+  const translateY = (scrollProgress - 0.5) * 2 * maxOffset * speed;
 
   return { ref, scrollProgress, translateY };
 }
@@ -142,107 +151,200 @@ function Navbar() {
 }
 
 // ============================================
-// HERO SECTION - Pure React Parallax (No External Libraries)
+// HERO SECTION - Premium Multi-Layer Parallax System
 // ============================================
 function Hero() {
   const heroRef = useRef<HTMLDivElement>(null);
-  const contentRef = useRef<HTMLDivElement>(null);
-  const bgRef = useRef<HTMLDivElement>(null);
-  const [isInView, setIsInView] = useState(true);
 
+  // Scroll parallax state
+  const [scrollY, setScrollY] = useState(0);
+  const [scrollProgress, setScrollProgress] = useState(0);
+
+  // Mouse parallax state (with smooth trailing)
+  const [mouseX, setMouseX] = useState(0);
+  const [mouseY, setMouseY] = useState(0);
+  const mouseTargetRef = useRef({ x: 0, y: 0 });
+  const mouseCurrentRef = useRef({ x: 0, y: 0 });
+
+  // Idle floating animation state
+  const [floatX, setFloatX] = useState(0);
+  const [floatY, setFloatY] = useState(0);
+  const startTimeRef = useRef(Date.now());
+
+  // Utility functions
+  const lerp = (start: number, end: number, factor: number) => start + (end - start) * factor;
+  const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
+  const smoothstep = (x: number) => {
+    const clamped = Math.max(0, Math.min(1, x));
+    return clamped * clamped * (3 - 2 * clamped);
+  };
+
+  // Check if touch device
+  const isTouchDevice = () => {
+    if (typeof window === 'undefined') return false;
+    return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+  };
+
+  // Single unified animation loop for all effects
   useEffect(() => {
     let animationFrameId: number;
-    let ticking = false;
 
-    const handleScroll = () => {
-      if (!ticking) {
-        animationFrameId = requestAnimationFrame(() => {
-          const scrollY = window.scrollY;
-          const heroElement = heroRef.current;
-          const contentElement = contentRef.current;
-          const bgElement = bgRef.current;
+    const animate = () => {
+      const element = heroRef.current;
 
-          if (!heroElement || !contentElement || !bgElement) {
-            ticking = false;
-            return;
-          }
+      if (element) {
+        const rect = element.getBoundingClientRect();
+        const windowHeight = window.innerHeight;
+        const heroHeight = element.offsetHeight;
 
-          const heroHeight = heroElement.offsetHeight;
-          const heroBottom = heroElement.offsetTop + heroHeight;
-
-          // Only animate while hero is in view (pro optimization)
-          if (scrollY > heroBottom) {
-            setIsInView(false);
-            ticking = false;
-            return;
-          } else {
-            setIsInView(true);
-          }
-
-          // Calculate scroll progress (0 to 1) relative to hero
-          const scrollProgress = Math.min(scrollY / heroHeight, 1);
-
-          // Content parallax transforms
-          // TranslateY: moves DOWN slower than scroll (creates depth)
-          const translateY = scrollProgress * 150; // Max 150px
-
-          // Scale: shrinks from 1 to 0.85 (clamped)
-          const scale = Math.max(1 - scrollProgress * 0.15, 0.85);
-
-          // Opacity: fades from 1 to 0
-          const opacity = Math.max(1 - scrollProgress * 1.2, 0);
-
-          // Background parallax (slower movement for depth)
-          const bgTranslateY = scrollProgress * 80; // Slower than content
-
-          // Apply transforms using native JS (no library)
-          contentElement.style.transform = `translateY(${translateY}px) scale(${scale})`;
-          contentElement.style.opacity = `${opacity}`;
-          bgElement.style.transform = `translateY(${bgTranslateY}px)`;
-
-          ticking = false;
-        });
-        ticking = true;
+        // Scroll progress calculation (0 to 1)
+        const rawProgress = clamp(window.scrollY / heroHeight, 0, 1);
+        const easedProgress = smoothstep(rawProgress);
+        setScrollProgress(easedProgress);
+        setScrollY((easedProgress - 0.5) * 200);
       }
+
+      // Mouse parallax lerp (smooth trailing)
+      if (!isTouchDevice()) {
+        mouseCurrentRef.current.x = lerp(mouseCurrentRef.current.x, mouseTargetRef.current.x, 0.06);
+        mouseCurrentRef.current.y = lerp(mouseCurrentRef.current.y, mouseTargetRef.current.y, 0.06);
+        setMouseX(mouseCurrentRef.current.x);
+        setMouseY(mouseCurrentRef.current.y);
+      }
+
+      // Idle float calculation (sine waves with phase offset)
+      const elapsed = Date.now() - startTimeRef.current;
+      setFloatX(Math.sin(elapsed * 0.0006) * 15);
+      setFloatY(Math.sin(elapsed * 0.0008 + Math.PI / 3) * 18);
+
+      animationFrameId = requestAnimationFrame(animate);
     };
 
-    // Initialize scroll position on mount
-    handleScroll();
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!heroRef.current || isTouchDevice()) return;
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
+      const rect = heroRef.current.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+
+      // Normalize to -1 to 1 range
+      const normalizedX = (e.clientX - centerX) / (rect.width / 2);
+      const normalizedY = (e.clientY - centerY) / (rect.height / 2);
+
+      // Apply intensity (40px max movement)
+      mouseTargetRef.current.x = clamp(normalizedX * 40, -50, 50);
+      mouseTargetRef.current.y = clamp(normalizedY * 30, -40, 40);
+    };
+
+    const handleMouseLeave = () => {
+      mouseTargetRef.current.x = 0;
+      mouseTargetRef.current.y = 0;
+    };
+
+    // Start animation loop
+    animationFrameId = requestAnimationFrame(animate);
+
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
+    document.addEventListener('mouseleave', handleMouseLeave);
 
     return () => {
-      window.removeEventListener('scroll', handleScroll);
-      if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId);
-      }
+      window.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseleave', handleMouseLeave);
+      if (animationFrameId) cancelAnimationFrame(animationFrameId);
     };
   }, []);
+
+  // Layer transform generator
+  const getLayerTransform = (config: {
+    scrollStrength?: number;
+    mouseStrength?: number;
+    floatStrength?: number;
+    scale?: number;
+  }) => {
+    const { scrollStrength = 0.5, mouseStrength = 0.5, floatStrength = 0.5, scale } = config;
+
+    const finalX = mouseX * mouseStrength + floatX * floatStrength;
+    const finalY = scrollY * scrollStrength + mouseY * mouseStrength + floatY * floatStrength;
+
+    let transform = `translate3d(${finalX}px, ${finalY}px, 0)`;
+
+    if (scale !== undefined) {
+      const scaleValue = 1 - scrollProgress * scale;
+      transform += ` scale(${clamp(scaleValue, 0.8, 1.05)})`;
+    }
+
+    return transform;
+  };
+
+  // Calculate opacity based on scroll
+  const contentOpacity = clamp(1 - scrollProgress * 1.3, 0, 1);
 
   return (
     <section
       ref={heroRef}
       className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16"
     >
-      {/* Background Gradient Glow - with slower parallax */}
+      {/* ==========================================
+          LAYER 1: Far Background Glow (Slowest)
+          ========================================== */}
       <div
-        ref={bgRef}
-        className="absolute inset-0 overflow-hidden"
-        style={{ willChange: 'transform' }}
+        className="absolute inset-0 overflow-hidden pointer-events-none"
+        style={{
+          transform: getLayerTransform({
+            scrollStrength: 0.2,
+            mouseStrength: 0.15,
+            floatStrength: 0.3,
+          }),
+          willChange: 'transform',
+        }}
       >
-        <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-tangerine/20 rounded-full blur-[150px]" />
-        <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-rose/15 rounded-full blur-[150px]" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-navy-light/50 rounded-full blur-[200px]" />
+        <div className="absolute top-1/4 left-1/4 w-[700px] h-[700px] bg-tangerine/20 rounded-full blur-[180px]" />
+        <div className="absolute bottom-1/4 right-1/4 w-[600px] h-[600px] bg-rose/15 rounded-full blur-[160px]" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[900px] bg-purple-500/10 rounded-full blur-[200px]" />
       </div>
 
-      {/* Grid Pattern */}
+      {/* ==========================================
+          LAYER 2: Mid Decorative Shapes
+          ========================================== */}
+      <div
+        className="absolute inset-0 overflow-hidden pointer-events-none"
+        style={{
+          transform: getLayerTransform({
+            scrollStrength: 0.35,
+            mouseStrength: 0.25,
+            floatStrength: 0.5,
+          }),
+          willChange: 'transform',
+        }}
+      >
+        {/* Abstract rings */}
+        <div className="absolute top-20 right-[15%] w-[300px] h-[300px] rounded-full border border-tangerine/20" />
+        <div className="absolute bottom-32 left-[10%] w-[200px] h-[200px] rounded-full border border-rose/15" />
+        <div className="absolute top-[40%] right-[5%] w-[150px] h-[150px] rounded-full border border-white/5" />
+
+        {/* Gradient orbs */}
+        <div className="absolute top-1/3 right-[20%] w-[100px] h-[100px] bg-gradient-to-br from-tangerine/30 to-transparent rounded-full blur-xl" />
+        <div className="absolute bottom-1/3 left-[15%] w-[80px] h-[80px] bg-gradient-to-br from-rose/25 to-transparent rounded-full blur-lg" />
+      </div>
+
+      {/* Grid Pattern (Static) */}
       <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:60px_60px]" />
 
-      {/* Content wrapper with parallax transforms */}
+      {/* ==========================================
+          LAYER 3: Main Content (Medium Movement)
+          ========================================== */}
       <div
-        ref={contentRef}
-        className="relative max-w-7xl mx-auto px-6 lg:px-8 py-24"
-        style={{ willChange: 'transform, opacity' }}
+        className="relative max-w-7xl mx-auto px-6 lg:px-8 py-24 z-10"
+        style={{
+          transform: getLayerTransform({
+            scrollStrength: 0.5,
+            mouseStrength: 0.08,
+            floatStrength: 0.1,
+            scale: 0.12,
+          }),
+          opacity: contentOpacity,
+          willChange: 'transform, opacity',
+        }}
       >
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Left Content */}
@@ -278,7 +380,7 @@ function Hero() {
               Helix is your all-in-one platform to request creative services and track projects seamlessly. From websites to branding, we&apos;ve got you covered.
             </motion.p>
 
-            {/* CTAs - Two call-to-action buttons */}
+            {/* CTAs */}
             <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start">
               <Link href="/auth" className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-tangerine to-rose text-white font-semibold rounded-xl hover:shadow-2xl hover:shadow-tangerine/30 transition-all hover:-translate-y-0.5 flex items-center justify-center gap-2">
                 Get Started
@@ -291,7 +393,9 @@ function Hero() {
             </motion.div>
           </motion.div>
 
-          {/* Right - Abstract Logo/Visual */}
+          {/* ==========================================
+              LAYER 4: Foreground Floating Elements
+              ========================================== */}
           <motion.div
             initial={{ opacity: 0, scale: 0.8, rotate: -5 }}
             animate={{ opacity: 1, scale: 1, rotate: 0 }}
@@ -299,46 +403,78 @@ function Hero() {
             className="relative hidden lg:flex items-center justify-center"
           >
             <div className="relative w-[450px] h-[450px]">
-              {/* Outer Ring */}
-              <div className="absolute inset-0 rounded-full border-2 border-dashed border-white/10 animate-spin" style={{ animationDuration: "30s" }} />
+              {/* Outer Ring - Very slow movement */}
+              <div
+                className="absolute inset-0 rounded-full border-2 border-dashed border-white/10"
+                style={{
+                  transform: `translate3d(${mouseX * 0.1}px, ${mouseY * 0.1 + floatY * 0.3}px, 0) rotate(${scrollProgress * 30}deg)`,
+                  willChange: 'transform',
+                }}
+              />
 
-              {/* Middle Ring */}
-              <div className="absolute inset-8 rounded-full border border-tangerine/30" />
+              {/* Middle Ring - Medium movement */}
+              <div
+                className="absolute inset-8 rounded-full border border-tangerine/30"
+                style={{
+                  transform: `translate3d(${mouseX * 0.2}px, ${mouseY * 0.2 + floatY * 0.5}px, 0)`,
+                  willChange: 'transform',
+                }}
+              />
 
               {/* Inner Glow */}
-              <div className="absolute inset-16 rounded-full bg-gradient-to-br from-tangerine/20 to-rose/20 blur-xl" />
+              <div
+                className="absolute inset-16 rounded-full bg-gradient-to-br from-tangerine/20 to-rose/20 blur-xl"
+                style={{
+                  transform: `translate3d(${mouseX * 0.15}px, ${mouseY * 0.15 + floatY * 0.4}px, 0)`,
+                  willChange: 'transform',
+                }}
+              />
 
               {/* Center Logo */}
-              <div className="absolute inset-0 flex items-center justify-center">
+              <div
+                className="absolute inset-0 flex items-center justify-center"
+                style={{
+                  transform: `translate3d(${mouseX * 0.05}px, ${mouseY * 0.05}px, 0)`,
+                  willChange: 'transform',
+                }}
+              >
                 <div className="w-32 h-32 rounded-2xl bg-gradient-to-br from-tangerine to-rose flex items-center justify-center shadow-2xl shadow-tangerine/30">
                   <span className="text-white font-bold text-5xl">H</span>
                 </div>
               </div>
 
-              {/* Floating Elements */}
-              <motion.div
-                animate={{ y: [-10, 10, -10] }}
-                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+              {/* Floating Icon 1 - Fast movement */}
+              <div
                 className="absolute top-20 right-16 w-12 h-12 rounded-xl bg-navy-light border border-white/10 flex items-center justify-center"
+                style={{
+                  transform: `translate3d(${mouseX * 0.6 + floatX * 0.8}px, ${mouseY * 0.6 + floatY * 1.2}px, 0)`,
+                  willChange: 'transform',
+                }}
               >
                 <Globe className="w-6 h-6 text-tangerine" />
-              </motion.div>
+              </div>
 
-              <motion.div
-                animate={{ y: [10, -10, 10] }}
-                transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+              {/* Floating Icon 2 - Medium-fast movement */}
+              <div
                 className="absolute bottom-24 left-12 w-12 h-12 rounded-xl bg-navy-light border border-white/10 flex items-center justify-center"
+                style={{
+                  transform: `translate3d(${mouseX * 0.5 - floatX * 0.6}px, ${mouseY * 0.5 - floatY * 1}px, 0)`,
+                  willChange: 'transform',
+                }}
               >
                 <Palette className="w-6 h-6 text-rose" />
-              </motion.div>
+              </div>
 
-              <motion.div
-                animate={{ y: [-5, 15, -5] }}
-                transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+              {/* Floating Icon 3 - Different movement pattern */}
+              <div
                 className="absolute top-1/2 right-4 w-12 h-12 rounded-xl bg-navy-light border border-white/10 flex items-center justify-center"
+                style={{
+                  transform: `translate3d(${mouseX * 0.7 + floatX * 0.5}px, ${mouseY * 0.7 - floatY * 0.8}px, 0)`,
+                  willChange: 'transform',
+                }}
               >
                 <Smartphone className="w-6 h-6 text-tangerine-light" />
-              </motion.div>
+              </div>
             </div>
           </motion.div>
         </div>
