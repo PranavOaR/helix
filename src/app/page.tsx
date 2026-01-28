@@ -518,13 +518,38 @@ function HowItWorksSection() {
     },
   ];
 
-  const { ref, translateY } = useParallax(0.35);
+  const { ref, translateY, scrollProgress } = useParallax(0.5);
 
   return (
-    <section id="how-it-works" className="py-24 bg-navy/30 overflow-hidden">
+    <section id="how-it-works" className="py-24 bg-navy/30 overflow-hidden relative">
+      {/* Parallax Floating Background Elements */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div
+          className="absolute top-20 left-10 w-[300px] h-[300px] bg-tangerine/10 rounded-full blur-[100px]"
+          style={{
+            transform: `translateY(${(scrollProgress - 0.5) * -80}px)`,
+            willChange: 'transform'
+          }}
+        />
+        <div
+          className="absolute bottom-20 right-10 w-[250px] h-[250px] bg-rose/10 rounded-full blur-[80px]"
+          style={{
+            transform: `translateY(${(scrollProgress - 0.5) * 60}px)`,
+            willChange: 'transform'
+          }}
+        />
+        <div
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 w-[400px] h-[400px] bg-purple-500/5 rounded-full blur-[120px]"
+          style={{
+            transform: `translateY(${(scrollProgress - 0.5) * -40}px) translateX(-50%)`,
+            willChange: 'transform'
+          }}
+        />
+      </div>
+
       <div
         ref={ref}
-        className="max-w-7xl mx-auto px-6 lg:px-8"
+        className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10"
         style={{
           transform: `translateY(${translateY}px)`,
           willChange: 'transform'
@@ -756,13 +781,38 @@ function WhyHelixSection() {
     },
   ];
 
-  const { ref, translateY } = useParallax(0.35);
+  const { ref, translateY, scrollProgress } = useParallax(0.5);
 
   return (
-    <section id="why-helix" className="py-24 bg-navy/30 overflow-hidden">
+    <section id="why-helix" className="py-24 bg-navy/30 overflow-hidden relative">
+      {/* Parallax Floating Background Elements */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div
+          className="absolute top-10 right-20 w-[350px] h-[350px] bg-tangerine/10 rounded-full blur-[100px]"
+          style={{
+            transform: `translateY(${(scrollProgress - 0.5) * -100}px)`,
+            willChange: 'transform'
+          }}
+        />
+        <div
+          className="absolute bottom-10 left-20 w-[280px] h-[280px] bg-rose/10 rounded-full blur-[90px]"
+          style={{
+            transform: `translateY(${(scrollProgress - 0.5) * 80}px)`,
+            willChange: 'transform'
+          }}
+        />
+        <div
+          className="absolute top-1/3 left-1/4 w-[200px] h-[200px] bg-blue-500/5 rounded-full blur-[80px]"
+          style={{
+            transform: `translateY(${(scrollProgress - 0.5) * -50}px)`,
+            willChange: 'transform'
+          }}
+        />
+      </div>
+
       <div
         ref={ref}
-        className="max-w-7xl mx-auto px-6 lg:px-8"
+        className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10"
         style={{
           transform: `translateY(${translateY}px)`,
           willChange: 'transform'
@@ -840,20 +890,33 @@ function TestimonialsSection() {
     },
   ];
 
-  const { ref, translateY } = useParallax(0.3);
+  const { ref, translateY, scrollProgress } = useParallax(0.5);
 
   return (
     <section id="testimonials" className="py-24 overflow-hidden relative">
-      {/* Parallax Background Elements */}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          transform: `translateY(${translateY * 0.5}px)`,
-          willChange: 'transform'
-        }}
-      >
-        <div className="absolute top-1/4 left-0 w-[400px] h-[400px] bg-tangerine/5 rounded-full blur-[150px]" />
-        <div className="absolute bottom-1/4 right-0 w-[350px] h-[350px] bg-rose/5 rounded-full blur-[120px]" />
+      {/* Parallax Background Elements - More Visible */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div
+          className="absolute top-10 left-10 w-[400px] h-[400px] bg-tangerine/10 rounded-full blur-[100px]"
+          style={{
+            transform: `translateY(${(scrollProgress - 0.5) * -120}px)`,
+            willChange: 'transform'
+          }}
+        />
+        <div
+          className="absolute bottom-10 right-10 w-[350px] h-[350px] bg-rose/10 rounded-full blur-[90px]"
+          style={{
+            transform: `translateY(${(scrollProgress - 0.5) * 100}px)`,
+            willChange: 'transform'
+          }}
+        />
+        <div
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 w-[300px] h-[300px] bg-purple-500/5 rounded-full blur-[100px]"
+          style={{
+            transform: `translateY(${(scrollProgress - 0.5) * -60}px) translateX(-50%)`,
+            willChange: 'transform'
+          }}
+        />
       </div>
 
       <div
