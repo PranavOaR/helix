@@ -1,0 +1,9 @@
+# Helix - Brand Services Platform
+# https://helix.app
+
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /api/
+
+Sitemap: https://helix.app/sitemap.xml

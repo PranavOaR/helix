@@ -101,6 +101,55 @@ body {
 }
 
 /* ============================================
+   ACCESSIBILITY - Focus Styles
+   ============================================ */
+
+/* Visible focus for keyboard users */
+:focus-visible {
+  outline: 2px solid var(--brand-orange);
+  outline-offset: 2px;
+}
+
+/* Remove default focus outline for mouse users */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Screen reader only utility */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ============================================
+   SELECTION STYLES
+   ============================================ */
+
+::selection {
+  background: var(--brand-orange);
+  color: white;
+}
+
+/* ============================================
    BRAND GRADIENT UTILITIES
    ============================================ */
 
@@ -138,4 +187,23 @@ body {
 
 .text-glow-red {
   text-shadow: 0 0 20px rgba(198, 60, 60, 0.5);
+}
+
+/* ============================================
+   SMOOTH LOADING TRANSITIONS
+   ============================================ */
+
+.page-transition {
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

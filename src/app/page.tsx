@@ -23,6 +23,8 @@ import {
 import Link from "next/link";
 import Image from "next/image";
 import BrandLogo from "@/components/BrandLogo";
+import MobileMenu from "@/components/MobileMenu";
+import { ExpandableCard } from "@/components/ui/expandable-card";
 
 // Animation variants with proper typing
 const fadeInUp: Variants = {
@@ -110,14 +112,18 @@ function useParallax(speed: number = 0.5, maxOffset: number = 150) {
 // ============================================
 function Navbar() {
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl border-b border-brand-navy/5">
+    <nav 
+      className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl border-b border-brand-navy/5"
+      role="navigation"
+      aria-label="Main navigation"
+    >
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-3">
+          <Link href="/" className="flex items-center gap-3" aria-label="Helix - Home">
             <Image
               src="/logo.png"
-              alt="Helix Logo"
+              alt=""
               width={40}
               height={32}
               priority
@@ -126,7 +132,7 @@ function Navbar() {
             <span className="text-xl font-bold text-brand-navy">Helix</span>
           </Link>
 
-          {/* Nav Links */}
+          {/* Nav Links - Desktop */}
           <div className="hidden md:flex items-center gap-8">
             <a href="#services" className="text-sm text-brand-navy/60 hover:text-brand-navy transition-colors">
               Services
@@ -142,17 +148,18 @@ function Navbar() {
             </a>
           </div>
 
-          {/* CTA */}
+          {/* CTA & Mobile Menu */}
           <div className="flex items-center gap-4">
             <Link href="/auth" className="hidden sm:block text-sm text-brand-navy/60 hover:text-brand-navy transition-colors">
               Sign In
             </Link>
             <Link
               href="/auth"
-              className="px-4 py-2 bg-gradient-to-r from-brand-orange to-brand-red-light text-white text-sm font-medium rounded-lg transition-all hover:shadow-lg hover:shadow-brand-orange/25 hover:scale-105"
+              className="hidden sm:block px-4 py-2 bg-gradient-to-r from-brand-orange to-brand-red-light text-white text-sm font-medium rounded-lg transition-all hover:shadow-lg hover:shadow-brand-orange/25 hover:scale-105"
             >
               Get Started
             </Link>
+            <MobileMenu />
           </div>
         </div>
       </div>
@@ -559,27 +566,92 @@ function ServicesSection() {
     {
       icon: Globe,
       title: "Website Development",
+      category: "Development",
       description: "Custom, responsive websites built with modern technologies for optimal performance and user experience.",
+      image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=600&fit=crop",
+      details: {
+        intro: "We build lightning-fast, SEO-optimized websites that convert visitors into customers.",
+        features: [
+          "Custom Next.js & React Development",
+          "E-commerce Solutions with Shopify or Custom",
+          "CMS Integration (Contentful, Sanity, WordPress)",
+          "Performance Optimization & Core Web Vitals",
+          "Responsive Design for All Devices",
+        ],
+        process: "Our development process starts with understanding your business goals. We then create wireframes, design mockups, and develop your site with clean, maintainable code. Every website includes SEO optimization, analytics setup, and thorough testing.",
+      },
     },
     {
       icon: Palette,
       title: "UI/UX Design",
+      category: "Design",
       description: "Intuitive interfaces and seamless experiences that delight users and drive conversions.",
+      image: "https://images.unsplash.com/photo-1561070791-2526d30994b5?w=800&h=600&fit=crop",
+      details: {
+        intro: "Create memorable digital experiences with user-centered design that drives engagement and conversions.",
+        features: [
+          "User Research & Persona Development",
+          "Wireframing & Prototyping in Figma",
+          "Visual Design & Design Systems",
+          "Usability Testing & Iteration",
+          "Interaction Design & Micro-animations",
+        ],
+        process: "We dive deep into understanding your users through research and testing. Our iterative design process ensures every interface is intuitive, accessible, and aligned with your brand identity.",
+      },
     },
     {
       icon: Brush,
       title: "Branding & Identity",
+      category: "Branding",
       description: "Memorable brand identities that tell your story and connect with your target audience.",
+      image: "https://images.unsplash.com/photo-1558655146-9f40138edfeb?w=800&h=600&fit=crop",
+      details: {
+        intro: "Build a brand that resonates with your audience and stands out in a crowded market.",
+        features: [
+          "Logo Design & Visual Identity",
+          "Brand Strategy & Positioning",
+          "Color Palette & Typography Systems",
+          "Brand Guidelines & Style Guides",
+          "Marketing Collateral Design",
+        ],
+        process: "We start with discovery sessions to understand your vision, values, and target audience. From there, we craft a cohesive brand identity that tells your unique story and creates lasting impressions.",
+      },
     },
     {
       icon: Smartphone,
       title: "App Development",
+      category: "Development",
       description: "Native and cross-platform mobile applications that engage users on any device.",
+      image: "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=800&h=600&fit=crop",
+      details: {
+        intro: "Launch powerful mobile applications that your users will love and keep coming back to.",
+        features: [
+          "iOS & Android Native Development",
+          "React Native Cross-Platform Apps",
+          "App Store Optimization & Submission",
+          "Push Notifications & Real-time Features",
+          "Backend API Development & Integration",
+        ],
+        process: "From concept to launch, we guide you through the entire app development lifecycle. We focus on performance, user experience, and scalability to ensure your app succeeds in competitive app stores.",
+      },
     },
     {
       icon: ImageIcon,
       title: "Canva & Social Creatives",
+      category: "Marketing",
       description: "Eye-catching social media graphics and marketing materials that stand out.",
+      image: "https://images.unsplash.com/photo-1611162616305-c69b3fa7fbe0?w=800&h=600&fit=crop",
+      details: {
+        intro: "Elevate your social media presence with scroll-stopping graphics and cohesive visual content.",
+        features: [
+          "Social Media Post Templates",
+          "Instagram Stories & Reels Graphics",
+          "LinkedIn & Twitter Banner Designs",
+          "Email Marketing Templates",
+          "Presentation & Pitch Deck Design",
+        ],
+        process: "We create a library of on-brand templates and assets that make it easy for your team to produce consistent, professional content. Each design is optimized for engagement across all platforms.",
+      },
     },
   ];
 
@@ -622,30 +694,53 @@ function ServicesSection() {
             Services We Provide
           </h2>
           <p className="text-xl text-brand-navy/60 max-w-2xl mx-auto leading-relaxed">
-            Everything you need to build and grow your brand, all in one place.
+            Everything you need to build and grow your brand, all in one place. Click any service to learn more.
           </p>
         </motion.div>
 
-        {/* Services Grid */}
+        {/* Services Grid with Expandable Cards */}
         <motion.div
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-100px" }}
           variants={staggerContainer}
-          className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8"
+          className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8"
         >
           {services.map((service, index) => (
-            <motion.div
-              key={index}
-              variants={fadeInUp}
-              whileHover={{ y: -8, transition: { duration: 0.3 } }}
-              className="group p-10 bg-white border border-brand-navy/5 rounded-3xl hover:border-brand-orange/40 hover:bg-brand-navy/5 transition-all cursor-pointer shadow-lg hover:shadow-brand-orange/10"
-            >
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-orange/20 to-brand-red-light/20 border border-brand-orange/20 flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-500">
-                <service.icon className="w-8 h-8 text-brand-orange group-hover:text-brand-navy transition-colors" />
-              </div>
-              <h3 className="text-2xl font-semibold text-brand-navy mb-4 group-hover:text-brand-orange transition-colors">{service.title}</h3>
-              <p className="text-brand-navy/60 leading-relaxed text-lg">{service.description}</p>
+            <motion.div key={index} variants={fadeInUp}>
+              <ExpandableCard
+                title={service.title}
+                description={service.category}
+                src={service.image}
+                className="h-full"
+              >
+                <p className="text-lg font-medium text-brand-navy">
+                  {service.details.intro}
+                </p>
+                
+                <h4>What&apos;s Included</h4>
+                <ul className="space-y-2">
+                  {service.details.features.map((feature, i) => (
+                    <li key={i} className="flex items-start gap-3">
+                      <CheckCircle className="w-5 h-5 text-brand-orange shrink-0 mt-0.5" />
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                <h4>Our Process</h4>
+                <p>{service.details.process}</p>
+
+                <div className="pt-4 mt-4 border-t border-brand-navy/10">
+                  <Link 
+                    href="/auth" 
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-brand-orange to-brand-red-light text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-brand-orange/30 transition-all"
+                  >
+                    Get Started with {service.title}
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+                </div>
+              </ExpandableCard>
             </motion.div>
           ))}
         </motion.div>
@@ -1153,15 +1248,17 @@ function FinalCTASection() {
 // FOOTER
 // ============================================
 function Footer() {
+  const currentYear = new Date().getFullYear();
+  
   return (
-    <footer className="py-12 border-t border-brand-navy/10 bg-white">
+    <footer className="py-12 border-t border-brand-navy/10 bg-white" role="contentinfo">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           {/* Logo */}
           <div className="flex items-center gap-3">
             <Image
               src="/logo.png"
-              alt="Helix Logo"
+              alt=""
               width={40}
               height={32}
               className="object-contain mix-blend-multiply"
@@ -1170,21 +1267,21 @@ function Footer() {
           </div>
 
           {/* Links */}
-          <div className="flex items-center gap-8">
+          <nav className="flex items-center gap-8" aria-label="Footer navigation">
             <a href="#services" className="text-sm text-brand-navy/60 hover:text-brand-navy transition-colors">
               Services
             </a>
-            <a href="#" className="text-sm text-brand-navy/60 hover:text-brand-navy transition-colors">
+            <Link href="/dashboard" className="text-sm text-brand-navy/60 hover:text-brand-navy transition-colors">
               Dashboard
-            </a>
-            <a href="#" className="text-sm text-brand-navy/60 hover:text-brand-navy transition-colors">
+            </Link>
+            <a href="mailto:hello@helix.app" className="text-sm text-brand-navy/60 hover:text-brand-navy transition-colors">
               Contact
             </a>
-          </div>
+          </nav>
 
           {/* Copyright */}
           <p className="text-sm text-brand-navy/40">
-            © {new Date().getFullYear()} Helix. All rights reserved.
+            © {currentYear} Helix. All rights reserved.
           </p>
         </div>
       </div>
