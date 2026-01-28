@@ -1,25 +1,73 @@
 @import "tailwindcss";
 
+/* ============================================
+   HELIX BRAND COLOR SYSTEM
+   Colors derived from the official logo
+   ============================================ */
+
 :root {
-  --navy: #0f172a;
-  --navy-light: #1e293b;
-  --tangerine: #f97316;
-  --tangerine-light: #fb923c;
-  --rose: #e11d48;
-  --rose-light: #f43f5e;
-  --background: #0a0a0f;
+  /* Navy → Royal Blue Family (Primary Dark Base) */
+  --brand-navy-dark: #0E2A85;
+  --brand-navy: #123A9C;
+  --brand-navy-light: #499BD9;
+
+  /* Tangerine → Tiger Orange (Primary Accent) */
+  --brand-orange-light: #EFA163;
+  --brand-orange: #E0562B;
+  --brand-orange-deep: #C9471F;
+
+  /* Rose → Blood Red (Secondary Accent) */
+  --brand-red-light: #C63C3C;
+  --brand-red: #89100D;
+  --brand-red-deep: #5C0A09;
+
+  /* Background & Foreground */
+  --background: #050A1A;
+  --background-elevated: #0A1428;
   --foreground: #f1f5f9;
+
+  /* Legacy aliases for compatibility */
+  --navy: var(--brand-navy-dark);
+  --navy-light: var(--brand-navy);
+  --tangerine: var(--brand-orange);
+  --tangerine-light: var(--brand-orange-light);
+  --rose: var(--brand-red-light);
+  --rose-light: var(--brand-red);
 }
 
 @theme inline {
+  /* Background & Foreground */
   --color-background: var(--background);
+  --color-background-elevated: var(--background-elevated);
   --color-foreground: var(--foreground);
-  --color-navy: var(--navy);
-  --color-navy-light: var(--navy-light);
-  --color-tangerine: var(--tangerine);
-  --color-tangerine-light: var(--tangerine-light);
-  --color-rose: var(--rose);
-  --color-rose-light: var(--rose-light);
+
+  /* Brand Navy Family */
+  --color-brand-navy-dark: var(--brand-navy-dark);
+  --color-brand-navy: var(--brand-navy);
+  --color-brand-navy-light: var(--brand-navy-light);
+
+  /* Brand Orange Family */
+  --color-brand-orange-light: var(--brand-orange-light);
+  --color-brand-orange: var(--brand-orange);
+  --color-brand-orange-deep: var(--brand-orange-deep);
+
+  /* Brand Red Family */
+  --color-brand-red-light: var(--brand-red-light);
+  --color-brand-red: var(--brand-red);
+  --color-brand-red-deep: var(--brand-red-deep);
+
+  /* Legacy aliases */
+  --color-navy: var(--brand-navy-dark);
+  --color-navy-light: var(--brand-navy);
+  --color-tangerine: var(--brand-orange);
+  --color-tangerine-light: var(--brand-orange-light);
+  --color-rose: var(--brand-red-light);
+  --color-rose-light: var(--brand-red);
+
+  /* Brand Shadows */
+  --shadow-glow-orange: 0 0 40px rgba(224, 86, 43, 0.35);
+  --shadow-glow-red: 0 0 40px rgba(137, 16, 13, 0.35);
+  --shadow-glow-blue: 0 0 40px rgba(73, 155, 217, 0.35);
 }
 
 html {
@@ -30,23 +78,64 @@ body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background: var(--background);
   color: var(--foreground);
+  overflow-x: hidden;
+  max-width: 100%;
 }
 
-/* Custom scrollbar */
+/* Custom scrollbar using brand colors */
 ::-webkit-scrollbar {
   width: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #1e293b;
+  background: var(--brand-navy-dark);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #475569;
+  background: var(--brand-navy);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #64748b;
+  background: var(--brand-navy-light);
 }
 
+/* ============================================
+   BRAND GRADIENT UTILITIES
+   ============================================ */
+
+.gradient-brand-warm {
+  background: linear-gradient(to right, var(--brand-orange), var(--brand-red-light));
+}
+
+.gradient-brand-cool {
+  background: linear-gradient(to right, var(--brand-navy-dark), var(--brand-navy));
+}
+
+.gradient-brand-full {
+  background: linear-gradient(135deg, var(--brand-navy-light), var(--brand-orange), var(--brand-red-light));
+}
+
+/* ============================================
+   BRAND GLOW UTILITIES
+   ============================================ */
+
+.glow-orange {
+  box-shadow: 0 0 40px rgba(224, 86, 43, 0.35);
+}
+
+.glow-red {
+  box-shadow: 0 0 40px rgba(137, 16, 13, 0.35);
+}
+
+.glow-blue {
+  box-shadow: 0 0 40px rgba(73, 155, 217, 0.35);
+}
+
+.text-glow-orange {
+  text-shadow: 0 0 20px rgba(224, 86, 43, 0.5);
+}
+
+.text-glow-red {
+  text-shadow: 0 0 20px rgba(198, 60, 60, 0.5);
+}

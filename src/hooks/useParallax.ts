@@ -98,13 +98,14 @@ export function useScrollParallax(
                     const progress = clamp(rawProgress, 0, 1);
 
                     // Apply smoothstep easing for premium feel
-                    const easedProgress = smoothstep(progress);
-                    setScrollProgress(easedProgress);
+                    const eased = progress * progress * (3 - 2 * progress);
 
-                    // Calculate Y offset: negative = move up, positive = move down
-                    // Center around 0.5 so element moves in both directions
-                    const offset = (easedProgress - 0.5) * 2 * maxOffset * speed;
-                    setScrollY(offset);
+                    // Calculate translation with increased range (300px base)
+                    // Center point (0.5) = 0px translation
+                    const translation = (eased - 0.5) * speed * 300;
+
+                    setScrollY(translation);
+                    setScrollProgress(progress); // Keep raw progress for other uses
 
                     ticking = false;
                 });
