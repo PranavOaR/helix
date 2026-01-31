@@ -79,12 +79,9 @@ export const metadata: Metadata = {
     creator: "@helixapp",
   },
   icons: {
-    icon: [
-      { url: "/favicon.png", type: "image/png" },
-      { url: "/logo.png", type: "image/png", sizes: "32x32" },
-    ],
-    shortcut: "/favicon.png",
-    apple: [{ url: "/logo.png", sizes: "180x180" }],
+    icon: "/logo.png",
+    shortcut: "/logo.png",
+    apple: "/logo.png",
   },
   manifest: "/manifest.json",
   alternates: {
@@ -103,7 +100,7 @@ export default function RootLayout({
         {/* Preconnect to Firebase for performance */}
         <link rel="preconnect" href="https://firebaseapp.com" />
         <link rel="preconnect" href="https://googleapis.com" crossOrigin="anonymous" />
-        
+
         {/* JSON-LD Structured Data */}
         <script
           type="application/ld+json"

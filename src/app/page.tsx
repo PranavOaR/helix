@@ -112,7 +112,7 @@ function useParallax(speed: number = 0.5, maxOffset: number = 150) {
 // ============================================
 function Navbar() {
   return (
-    <nav 
+    <nav
       className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl border-b border-brand-navy/5"
       role="navigation"
       aria-label="Main navigation"
@@ -535,7 +535,7 @@ function ServicesSection() {
   const { ref, translateY } = useParallax(0.8);
 
   return (
-    <section id="services" ref={ref} className="py-32 relative overflow-hidden bg-white">
+    <section id="services" ref={ref} className="py-32 relative overflow-hidden bg-black rounded-t-[40px] sm:rounded-t-[60px] lg:rounded-t-[80px] -mt-10 z-[2]">
       {/* Layer 1: Background (Moves opposite) */}
       <div
         className="absolute inset-0 pointer-events-none overflow-hidden"
@@ -567,10 +567,10 @@ function ServicesSection() {
           <span className="inline-block text-sm font-bold text-brand-orange mb-4 uppercase tracking-widest">
             Our Services
           </span>
-          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-brand-navy mb-6 tracking-tight">
+          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6 tracking-tight">
             Services We Provide
           </h2>
-          <p className="text-xl text-brand-navy/60 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-xl text-white/60 max-w-2xl mx-auto leading-relaxed">
             Everything you need to build and grow your brand, all in one place. Click any service to learn more.
           </p>
         </motion.div>
@@ -594,7 +594,7 @@ function ServicesSection() {
                 <p className="text-lg font-medium text-brand-navy">
                   {service.details.intro}
                 </p>
-                
+
                 <h4>What&apos;s Included</h4>
                 <ul className="space-y-2">
                   {service.details.features.map((feature, i) => (
@@ -644,7 +644,11 @@ function HowItWorksSection() {
   const { ref, translateY, scrollProgress } = useParallax(1.0); // Speed 1.0
 
   return (
-    <section id="how-it-works" ref={ref} className="py-32 bg-black relative overflow-hidden">
+    <section
+      id="how-it-works"
+      ref={ref}
+      className="py-32 bg-white relative overflow-hidden rounded-t-[40px] sm:rounded-t-[60px] lg:rounded-t-[80px] -mt-10 z-[3]"
+    >
       {/* Layer 1: Background (Moves opposite) */}
       <div
         className="absolute inset-0 pointer-events-none overflow-hidden"
@@ -673,10 +677,10 @@ function HowItWorksSection() {
           <span className="inline-block text-sm font-bold text-brand-orange mb-4 uppercase tracking-widest">
             How It Works
           </span>
-          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6">
+          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-brand-navy mb-6">
             A Simple Workflow Built for Brands
           </h2>
-          <p className="text-xl text-white/60 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-xl text-brand-navy/60 max-w-2xl mx-auto leading-relaxed">
             Get started in three easy steps and watch your brand come to life.
           </p>
         </motion.div>
@@ -700,7 +704,7 @@ function HowItWorksSection() {
                 <div className="hidden md:block absolute top-14 left-[60%] w-[80%] h-px bg-gradient-to-r from-brand-orange/50 to-transparent" />
               )}
 
-              <div className="relative p-10 bg-neutral-900/50 border border-white/5 rounded-3xl overflow-hidden group hover:border-brand-orange/20 transition-all shadow-lg hover:shadow-brand-orange/5">
+              <div className="relative p-10 bg-brand-navy/5 border border-brand-navy/10 rounded-3xl overflow-hidden group hover:border-brand-orange/30 transition-all shadow-lg hover:shadow-brand-orange/10">
                 {/* Gradient Border Effect */}
                 <div className="absolute inset-0 bg-gradient-to-br from-brand-orange/5 to-brand-red-light/5 opacity-0 group-hover:opacity-100 transition-opacity" />
 
@@ -715,8 +719,8 @@ function HowItWorksSection() {
                     </div>
                   </div>
 
-                  <h3 className="text-2xl font-semibold text-white mb-4">{step.title}</h3>
-                  <p className="text-white/60 leading-relaxed text-lg">{step.description}</p>
+                  <h3 className="text-2xl font-semibold text-brand-navy mb-4">{step.title}</h3>
+                  <p className="text-brand-navy/60 leading-relaxed text-lg">{step.description}</p>
                 </div>
               </div>
             </motion.div>
@@ -741,7 +745,10 @@ function ProjectTrackingSection() {
   const { ref, translateY, scrollProgress } = useParallax(0.4);
 
   return (
-    <section ref={ref} className="py-24 overflow-hidden bg-white">
+    <section
+      ref={ref}
+      className="py-24 overflow-hidden bg-black relative rounded-t-[40px] sm:rounded-t-[60px] lg:rounded-t-[80px] -mt-10 z-[4]"
+    >
       {/* Parallax Background Elements */}
       <div
         className="absolute inset-0 pointer-events-none overflow-hidden"
@@ -769,22 +776,22 @@ function ProjectTrackingSection() {
             <span className="inline-block text-sm font-medium text-brand-orange mb-4 uppercase tracking-wider">
               Real-Time Tracking
             </span>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-brand-navy mb-6">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-6">
               Track every stage of your project in real-time
             </h2>
-            <p className="text-lg text-brand-navy/60 mb-8 leading-relaxed">
+            <p className="text-lg text-white/60 mb-8 leading-relaxed">
               Stay informed with our intuitive dashboard. Know exactly where your project stands, from submission to completion. No more wondering, no more waiting blindly.
             </p>
             <ul className="space-y-4">
-              <li className="flex items-center gap-3 text-brand-navy/80">
+              <li className="flex items-center gap-3 text-white/80">
                 <Eye className="w-5 h-5 text-brand-orange" />
                 <span>Real-time status updates</span>
               </li>
-              <li className="flex items-center gap-3 text-brand-navy/80">
+              <li className="flex items-center gap-3 text-white/80">
                 <Zap className="w-5 h-5 text-brand-orange" />
                 <span>Instant notifications</span>
               </li>
-              <li className="flex items-center gap-3 text-brand-navy/80">
+              <li className="flex items-center gap-3 text-white/80">
                 <Headphones className="w-5 h-5 text-brand-orange" />
                 <span>Direct communication channel</span>
               </li>
@@ -887,7 +894,11 @@ function WhyHelixSection() {
   const { ref, translateY, scrollProgress } = useParallax(0.7); // Speed 0.7
 
   return (
-    <section id="why-helix" ref={ref} className="py-24 bg-black relative overflow-hidden">
+    <section
+      id="why-helix"
+      ref={ref}
+      className="py-24 bg-white relative overflow-hidden rounded-t-[40px] sm:rounded-t-[60px] lg:rounded-t-[80px] -mt-10 z-[5]"
+    >
       {/* Layer 1: Background (Moves opposite) */}
       <div
         className="absolute inset-0 pointer-events-none overflow-hidden"
@@ -916,10 +927,10 @@ function WhyHelixSection() {
           <span className="inline-block text-sm font-bold text-brand-orange mb-4 uppercase tracking-widest">
             Why Choose Us
           </span>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-6">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-brand-navy mb-6">
             Why Brands Choose Helix
           </h2>
-          <p className="text-lg text-white/60 max-w-2xl mx-auto">
+          <p className="text-lg text-brand-navy/60 max-w-2xl mx-auto">
             We&apos;re committed to delivering exceptional results that help your brand thrive.
           </p>
         </motion.div>
@@ -937,13 +948,13 @@ function WhyHelixSection() {
               key={index}
               variants={fadeInUp}
               whileHover={{ y: -8 }}
-              className="text-center p-8 bg-neutral-900/50 border border-white/5 rounded-2xl hover:border-brand-orange/30 transition-all group shadow-lg hover:shadow-brand-orange/5"
+              className="text-center p-8 bg-brand-navy/5 border border-brand-navy/10 rounded-2xl hover:border-brand-orange/30 transition-all group shadow-lg hover:shadow-brand-orange/10"
             >
               <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-orange/20 to-brand-red-light/20 border border-brand-orange/20 flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform">
                 <benefit.icon className="w-8 h-8 text-brand-orange" />
               </div>
-              <h3 className="text-xl font-semibold text-white mb-3">{benefit.title}</h3>
-              <p className="text-white/60 leading-relaxed">{benefit.description}</p>
+              <h3 className="text-xl font-semibold text-brand-navy mb-3">{benefit.title}</h3>
+              <p className="text-brand-navy/60 leading-relaxed">{benefit.description}</p>
             </motion.div>
           ))}
         </motion.div>
@@ -1066,7 +1077,7 @@ function FinalCTASection() {
   const { ref, translateY } = useParallax(0.25);
 
   return (
-    <section ref={ref} className="py-24 overflow-hidden relative bg-black">
+    <section ref={ref} className="py-24 overflow-hidden relative bg-black rounded-t-[40px] sm:rounded-t-[60px] lg:rounded-t-[80px] -mt-10 z-[6]">
       {/* Layer 1: Background (Moves opposite) */}
       <div
         className="absolute inset-0 pointer-events-none overflow-hidden"
@@ -1116,7 +1127,7 @@ function FinalCTASection() {
 // ============================================
 function Footer() {
   const currentYear = new Date().getFullYear();
-  
+
   return (
     <footer className="py-12 border-t border-brand-navy/10 bg-white" role="contentinfo">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
