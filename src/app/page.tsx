@@ -139,8 +139,8 @@ function Navbar() {
       aria-label="Main navigation"
     >
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
-          {/* Logo */}
+        <div className="grid grid-cols-3 items-center h-16">
+          {/* Logo - left aligned */}
           <Link href="/" className="flex items-center gap-3" aria-label="Helix - Home">
             <Image
               src="/logo.png"
@@ -153,11 +153,13 @@ function Navbar() {
             <span className="text-xl font-bold text-brand-navy">Helix</span>
           </Link>
 
-          {/* Nav Dock - Center (Desktop) */}
-          <NavDock items={navItems} />
+          {/* Nav Dock - center aligned */}
+          <div className="flex justify-center">
+            <NavDock items={navItems} />
+          </div>
 
-          {/* CTA & Mobile Menu */}
-          <div className="flex items-center gap-4">
+          {/* CTA & Mobile Menu - right aligned */}
+          <div className="flex items-center justify-end gap-4">
             <Link href="/auth" className="hidden sm:block text-sm text-brand-navy/60 hover:text-brand-navy transition-colors">
               Sign In
             </Link>
@@ -1184,8 +1186,8 @@ function Footer() {
           willChange: 'transform'
         }}
       >
-        <div className="flex items-center justify-between h-20">
-          {/* Logo */}
+        <div className="grid grid-cols-3 items-center h-20">
+          {/* Logo - left aligned */}
           <div className="flex items-center gap-3">
             <Image
               src="/logo.png"
@@ -1197,11 +1199,13 @@ function Footer() {
             <span className="text-xl font-bold text-brand-navy">Helix</span>
           </div>
 
-          {/* NavDock Links - centered */}
-          <NavDock items={footerNavItems} />
+          {/* NavDock Links - center aligned */}
+          <div className="flex justify-center">
+            <NavDock items={footerNavItems} />
+          </div>
 
-          {/* Copyright */}
-          <p className="text-sm text-brand-navy/40">
+          {/* Copyright - right aligned */}
+          <p className="text-sm text-brand-navy/40 text-right">
             © {currentYear} Helix. All rights reserved.
           </p>
         </div>

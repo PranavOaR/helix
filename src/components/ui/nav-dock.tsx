@@ -31,7 +31,7 @@ export const NavDock = ({
             onMouseMove={(e) => mouseX.set(e.pageX)}
             onMouseLeave={() => mouseX.set(Infinity)}
             className={cn(
-                "hidden md:flex items-end gap-8 rounded-2xl bg-white/50 backdrop-blur-md px-6 py-3 border border-brand-navy/10",
+                "hidden md:flex items-end gap-6 rounded-xl bg-white/50 backdrop-blur-md px-5 py-2 border border-brand-navy/10",
                 className
             )}
         >
@@ -71,14 +71,14 @@ function IconContainer({
     const [hovered, setHovered] = useState(false);
 
     return (
-        <a href={href} className="flex flex-col items-center gap-1.5">
+        <a href={href} className="flex flex-col items-center gap-1">
             <motion.div
                 ref={ref}
                 style={{ scale }}
                 onMouseEnter={() => setHovered(true)}
                 onMouseLeave={() => setHovered(false)}
                 className={cn(
-                    "relative flex w-14 h-9 items-center justify-center rounded-xl transition-all duration-200",
+                    "relative flex w-12 h-7 items-center justify-center rounded-lg transition-all duration-200",
                     "bg-gradient-to-br from-brand-orange/10 to-brand-red-light/10 border border-brand-orange/20",
                     hovered && "border-brand-orange/50 from-brand-orange/20 to-brand-red-light/20 shadow-lg shadow-brand-orange/10"
                 )}
@@ -88,7 +88,7 @@ function IconContainer({
                 </div>
             </motion.div>
             <span className={cn(
-                "text-xs font-medium transition-colors duration-200",
+                "text-[11px] font-medium transition-colors duration-200",
                 hovered ? "text-brand-orange" : "text-brand-navy/70"
             )}>
                 {title}
