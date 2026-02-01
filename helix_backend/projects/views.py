@@ -16,7 +16,8 @@ from .models import Brand, Project
 from .serializers import (
     ProjectCreateSerializer,
     ProjectSerializer,
-    ProjectListSerializer
+    ProjectListSerializer,
+    BrandProfileSerializer
 )
 
 
@@ -231,3 +232,151 @@ def health_check(request):
         'message': 'Helix API is running',
         'version': 'Stage 1'
     }, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_user_profile(request):
+    """
+    Get the profile of the authenticated user including their role.
+    
+    GET /api/projects/user/profile/
+    
+    Response:
+        {
+            "email": "user@example.com",
+            "brand_name": "My Brand",
+            "role": "USER"
+        }
+    """
+    firebase_uid = str(request.user)
+    token_data = request.auth
+    email = token_data.get('email', '') if token_data else ''
+    
+    try:
+        # Get or create brand for this user
+        brand, created = Brand.objects.get_or_create(
+            uid=firebase_uid,
+            defaults={
+                'brand_name': token_data.get('name', email.split('@')[0]) if token_data else 'User',
+                'email': email,
+                'role': 'USER'  # Default role
+            }
+        )
+        
+        serializer = BrandProfileSerializer(brand)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    except Exception as e:
+        return Response({
+            'error': f'Failed to retrieve profile: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_all_projects(request):
+    """
+    Get all projects (admin only).
+    
+    GET /api/projects/all/
+    
+    Requires admin role.
+    """
+    firebase_uid = str(request.user)
+    
+    try:
+        # Check if user is admin
+        brand = Brand.objects.get(uid=firebase_uid)
+        
+        if brand.role != 'ADMIN':
+            return Response({
+                'success': False,
+                'message': 'Admin access required'
+            }, status=status.HTTP_403_FORBIDDEN)
+        
+        # Get all projects
+        projects = Project.objects.all().select_related('brand')
+        serializer = ProjectListSerializer(projects, many=True)
+        
+        return Response({
+            'success': True,
+            'count': projects.count(),
+            'projects': serializer.data
+        }, status=status.HTTP_200_OK)
+    
+    except Brand.DoesNotExist:
+        return Response({
+            'success': False,
+            'message': 'User not found'
+        }, status=status.HTTP_404_NOT_FOUND)
+    
+    except Exception as e:
+        return Response({
+            'success': False,
+            'message': f'Failed to retrieve projects: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['PATCH'])
+@permission_classes([IsAuthenticated])
+def update_project_status(request, project_id):
+    """
+    Update the status of a project (admin only).
+    
+    PATCH /api/projects/<project_id>/update-status/
+    
+    Request Body:
+        {
+            "status": "ACCEPTED"
+        }
+    """
+    firebase_uid = str(request.user)
+    new_status = request.data.get('status')
+    
+    if not new_status:
+        return Response({
+            'success': False,
+            'message': 'Status is required'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        # Check if user is admin
+        brand = Brand.objects.get(uid=firebase_uid)
+        
+        if brand.role != 'ADMIN':
+            return Response({
+                'success': False,
+                'message': 'Admin access required'
+            }, status=status.HTTP_403_FORBIDDEN)
+        
+        # Update project status
+        project = Project.objects.get(id=project_id)
+        project.status = new_status.lower()
+        project.save()
+        
+        serializer = ProjectSerializer(project)
+        
+        return Response({
+            'success': True,
+            'message': 'Status updated successfully',
+            'project': serializer.data
+        }, status=status.HTTP_200_OK)
+    
+    except Brand.DoesNotExist:
+        return Response({
+            'success': False,
+            'message': 'User not found'
+        }, status=status.HTTP_404_NOT_FOUND)
+    
+    except Project.DoesNotExist:
+        return Response({
+            'success': False,
+            'message': 'Project not found'
+        }, status=status.HTTP_404_NOT_FOUND)
+    
+    except Exception as e:
+        return Response({
+            'success': False,
+            'message': f'Failed to update status: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

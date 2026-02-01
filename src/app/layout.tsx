@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import { AuthProvider } from "@/context/AuthContext";
+import { ToastProvider } from "@/context/ToastContext";
 import SkipToContent from "@/components/SkipToContent";
 import ScrollToTop from "@/components/ScrollToTop";
 import "./globals.css";
@@ -130,7 +131,9 @@ export default function RootLayout({
       <body className="font-sans antialiased bg-brand-navy-dark overflow-x-hidden text-white">
         <SkipToContent />
         <AuthProvider>
-          <main id="main-content">{children}</main>
+          <ToastProvider>
+            <main id="main-content">{children}</main>
+          </ToastProvider>
         </AuthProvider>
         <ScrollToTop />
       </body>

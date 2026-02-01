@@ -16,8 +16,19 @@ class BrandSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Brand
-        fields = ['id', 'uid', 'brand_name', 'email', 'created_at', 'updated_at']
+        fields = ['id', 'uid', 'brand_name', 'email', 'role', 'created_at', 'updated_at']
         read_only_fields = ['id', 'uid', 'created_at', 'updated_at']
+
+
+class BrandProfileSerializer(serializers.ModelSerializer):
+    """
+    Minimal serializer for user profile endpoint.
+    Returns essential user information including role for frontend auth.
+    """
+    
+    class Meta:
+        model = Brand
+        fields = ['email', 'brand_name', 'role']
 
 
 class ProjectSerializer(serializers.ModelSerializer):

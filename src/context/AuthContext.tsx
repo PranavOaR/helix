@@ -4,6 +4,8 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import {
   User,
   signInWithPopup,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
   signOut,
   onAuthStateChanged
 } from "firebase/auth";
@@ -21,6 +23,8 @@ interface AuthContextType {
   loading: boolean; // True until initial auth check AND role resolution are done
   authLoading: boolean; // Specific to Firebase status
   roleLoading: boolean; // Specific to Role fetch
+  signUp: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -74,6 +78,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => unsubscribe();
   }, []);
 
+  const signUp = async (email: string, password: string) => {
+    try {
+      await createUserWithEmailAndPassword(auth, email, password);
+    } catch (error) {
+      console.error("Sign Up Error:", error);
+      throw error;
+    }
+  };
+
+  const login = async (email: string, password: string) => {
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+    } catch (error) {
+      console.error("Login Error:", error);
+      throw error;
+    }
+  };
+
   const loginWithGoogle = async () => {
     try {
       await signInWithPopup(auth, googleProvider);
@@ -95,7 +117,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const loading = authLoading || roleLoading;
 
   return (
-    <AuthContext.Provider value={{ user, loading, authLoading, roleLoading, loginWithGoogle, logout }}>
+    <AuthContext.Provider value={{ user, loading, authLoading, roleLoading, signUp, login, loginWithGoogle, logout }}>
       {children}
     </AuthContext.Provider>
   );

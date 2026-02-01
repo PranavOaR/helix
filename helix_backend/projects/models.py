@@ -33,6 +33,19 @@ class Brand(models.Model):
         help_text="Brand contact email (from Firebase Auth)"
     )
     
+    # Role field for authorization
+    ROLE_CHOICES = [
+        ('USER', 'User'),
+        ('ADMIN', 'Admin'),
+    ]
+    
+    role = models.CharField(
+        max_length=10,
+        choices=ROLE_CHOICES,
+        default='USER',
+        help_text="User role for authorization"
+    )
+    
     created_at = models.DateTimeField(
         auto_now_add=True,
         help_text="Timestamp when brand was first registered"

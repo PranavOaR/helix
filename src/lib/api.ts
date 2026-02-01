@@ -70,11 +70,16 @@ async function fetchWithAuth(endpoint: string, options: RequestInit = {}) {
 
     // Global Error Handling
     if (response.status === 401) {
-      console.warn("Unauthorized (401) - Logging out");
-      const auth = getAuth();
-      await signOut(auth);
-      window.location.href = '/'; // Hard redirect to login
-      throw new Error("Session expired. Please login again.");
+      // Only logout if it's truly an auth error, not a connection issue
+      const text = await response.text();
+      if (text.includes('auth') || text.includes('token')) {
+        console.warn("Unauthorized (401) - Logging out");
+        const auth = getAuth();
+        await signOut(auth);
+        window.location.href = '/'; // Hard redirect to login
+        throw new Error("Session expired. Please login again.");
+      }
+      throw new Error("Backend authentication error. Please try again.");
     }
 
     if (response.status === 403) {
@@ -88,8 +93,11 @@ async function fetchWithAuth(endpoint: string, options: RequestInit = {}) {
     }
 
     return await response.json();
-  } catch (error) {
-    console.error(`API Request Failed: ${endpoint}`, error);
+  } catch (error: any) {
+    // Don't logout on network errors
+    if (error.message && !error.message.includes('Session expired')) {
+      console.error(`API Request Failed: ${endpoint}`, error);
+    }
     throw error;
   }
 }
@@ -165,7 +173,7 @@ export async function getUserProfile(): Promise<UserProfile | null> {
     // We treat this one differently as 404/500 shouldn't necessarily throw global UI errors
     // but rather return null for fallback logic
     const token = await getAuthToken();
-    const response = await fetch(`${API_BASE_URL}/users/me/`, {
+    const response = await fetch(`${API_BASE_URL}/projects/user/profile/`, {
       method: 'GET',
       headers: { 'Authorization': `Bearer ${token}` },
     });
@@ -191,7 +199,7 @@ export async function getAllProjects(): Promise<ProjectRequest[]> {
  * Update project status (Admin only)
  */
 export async function updateProjectStatus(projectId: number, status: string) {
-  return await fetchWithAuth(`/projects/${projectId}/update_status/`, {
+  return await fetchWithAuth(`/projects/${projectId}/update-status/`, {
     method: 'PATCH',
     body: JSON.stringify({ status }),
   });

@@ -67,9 +67,10 @@ class FirebaseAuthentication(authentication.BaseAuthentication):
         # Get or create Brand entry for this user
         email = decoded_token.get('email', '')
         
-        # Return UID as the "user" object
-        # DRF will set request.user to this UID
-        return (uid, decoded_token)
+        # Return FirebaseUser object that DRF can work with
+        # DRF will set request.user to this FirebaseUser instance
+        firebase_user = FirebaseUser(uid, email)
+        return (firebase_user, decoded_token)
     
     def authenticate_header(self, request):
         """
