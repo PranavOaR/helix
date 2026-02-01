@@ -12,7 +12,7 @@ import { db } from "@/lib/firebase";
 
 export default function AuthPage() {
   const router = useRouter();
-  const { user, loading: authLoading, signUp, login, loginWithGoogle } = useAuth();
+  const { user, loading: authLoading, roleLoading, signUp, login, loginWithGoogle } = useAuth();
 
   const [mode, setMode] = useState<"login" | "signup">("signup");
   const [showPassword, setShowPassword] = useState(false);
@@ -29,12 +29,18 @@ export default function AuthPage() {
     confirmPassword: "",
   });
 
-  // Redirect if already logged in
+  // Redirect if already logged in (based on role)
   useEffect(() => {
-    if (user && !authLoading) {
-      router.push("/dashboard");
+    // Wait for both auth and role to be loaded
+    if (user && !authLoading && !roleLoading) {
+      // Redirect based on user role
+      if (user.role === 'ADMIN') {
+        router.push("/admin");
+      } else {
+        router.push("/dashboard");
+      }
     }
-  }, [user, authLoading, router]);
+  }, [user, authLoading, roleLoading, router]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -93,12 +99,12 @@ export default function AuthPage() {
         }
 
         setSuccess("Account created successfully! Redirecting...");
-        setTimeout(() => router.push("/dashboard"), 1500);
+        // Redirect will be handled by useEffect based on role
       } else {
         // Login
         await login(formData.email, formData.password);
         setSuccess("Login successful! Redirecting...");
-        setTimeout(() => router.push("/dashboard"), 1000);
+        // Redirect will be handled by useEffect based on role
       }
     } catch (err: any) {
       console.error("Auth error:", err);
@@ -128,7 +134,7 @@ export default function AuthPage() {
     try {
       await loginWithGoogle();
       setSuccess("Login successful! Redirecting...");
-      setTimeout(() => router.push("/dashboard"), 1000);
+      // Redirect will be handled by useEffect based on role
     } catch (err: any) {
       console.error("Google auth error:", err);
       if (err.code === "auth/popup-closed-by-user") {
