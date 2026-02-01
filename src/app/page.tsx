@@ -20,7 +20,7 @@ import {
   ArrowRight,
   ChevronRight,
 } from "lucide-react";
-import { IconBriefcase, IconRoute, IconSparkles } from "@tabler/icons-react";
+import { IconBriefcase, IconRoute, IconSparkles, IconLayoutDashboard, IconMail } from "@tabler/icons-react";
 import Link from "next/link";
 import Image from "next/image";
 import BrandLogo from "@/components/BrandLogo";
@@ -1144,6 +1144,24 @@ function Footer() {
   const currentYear = new Date().getFullYear();
   const { ref, translateY } = useParallax(0.2);
 
+  const footerNavItems = [
+    {
+      title: "Services",
+      icon: <IconBriefcase className="h-full w-full" />,
+      href: "#services",
+    },
+    {
+      title: "Dashboard",
+      icon: <IconLayoutDashboard className="h-full w-full" />,
+      href: "/dashboard",
+    },
+    {
+      title: "Contact",
+      icon: <IconMail className="h-full w-full" />,
+      href: "mailto:hello@helix.app",
+    },
+  ];
+
   return (
     <footer
       ref={ref}
@@ -1179,18 +1197,8 @@ function Footer() {
             <span className="text-xl font-bold text-brand-navy">Helix</span>
           </div>
 
-          {/* Links */}
-          <nav className="flex items-center gap-8" aria-label="Footer navigation">
-            <a href="#services" className="text-sm text-brand-navy/60 hover:text-brand-navy transition-colors">
-              Services
-            </a>
-            <Link href="/dashboard" className="text-sm text-brand-navy/60 hover:text-brand-navy transition-colors">
-              Dashboard
-            </Link>
-            <a href="mailto:hello@helix.app" className="text-sm text-brand-navy/60 hover:text-brand-navy transition-colors">
-              Contact
-            </a>
-          </nav>
+          {/* NavDock Links */}
+          <NavDock items={footerNavItems} />
 
           {/* Copyright */}
           <p className="text-sm text-brand-navy/40">
