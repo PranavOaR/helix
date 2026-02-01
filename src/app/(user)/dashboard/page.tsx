@@ -4,10 +4,12 @@ import { useEffect, useState } from "react";
 import { getServices, Service } from "@/lib/api";
 import ServiceCard from "@/components/dashboard/ServiceCard";
 import { motion } from "framer-motion";
+import { useTheme } from "@/context/ThemeContext";
 
 export default function DashboardPage() {
     const [services, setServices] = useState<Service[]>([]);
     const [loading, setLoading] = useState(true);
+    const { theme } = useTheme();
 
     useEffect(() => {
         async function loadServices() {
@@ -32,10 +34,14 @@ export default function DashboardPage() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5 }}
                 >
-                    <h1 className="mb-2 text-4xl font-bold text-white">
+                    <h1 className={`mb-2 text-4xl font-bold ${
+                        theme === "light" ? "text-[#123A9C]" : "text-white"
+                    }`}>
                         What would you like to do today?
                     </h1>
-                    <p className="mb-12 text-gray-400">
+                    <p className={`mb-12 ${
+                        theme === "light" ? "text-gray-600" : "text-gray-400"
+                    }`}>
                         Select a service to get started with your new project.
                     </p>
                 </motion.div>
@@ -43,7 +49,12 @@ export default function DashboardPage() {
                 {loading ? (
                     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                         {[1, 2, 3].map((i) => (
-                            <div key={i} className="h-64 animate-pulse rounded-2xl bg-white/5"></div>
+                            <div 
+                                key={i} 
+                                className={`h-64 animate-pulse rounded-2xl ${
+                                    theme === "light" ? "bg-gray-200" : "bg-white/5"
+                                }`}
+                            />
                         ))}
                     </div>
                 ) : (

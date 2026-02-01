@@ -6,17 +6,18 @@ import { getServices, createProject, Service } from "@/lib/api";
 import { motion } from "framer-motion";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { useToast } from "@/context/ToastContext";
+import { useTheme } from "@/context/ThemeContext";
+import MultiStepForm, { ProjectFormData } from "@/components/dashboard/MultiStepForm";
 
 export default function ServiceDetailsPage() {
     const params = useParams();
     const router = useRouter();
     const id = params.id as string;
+    const { theme } = useTheme();
 
     const [service, setService] = useState<Service | null>(null);
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
-    const [requirements, setRequirements] = useState("");
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
@@ -34,16 +35,25 @@ export default function ServiceDetailsPage() {
         loadService();
     }, [id]);
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleSubmit = async (formData: ProjectFormData) => {
         if (!service) return;
 
         setSubmitting(true);
         setError(null);
 
         try {
-            // Cast service.id to the allowed type or update createProject to accept string
-            // Assuming createProject accepts string based on usage, but type might restrict it
+            // Combine all form data into requirements text
+            const requirements = `
+Name: ${formData.firstName} ${formData.lastName}
+Brand: ${formData.brandName}
+
+Brand Details:
+${formData.brandDetails}
+
+Project Description:
+${formData.projectDescription}
+            `.trim();
+
             await createProject(service.id as any, requirements);
             router.push("/dashboard/requests");
         } catch (err: any) {
@@ -55,7 +65,7 @@ export default function ServiceDetailsPage() {
     if (loading) {
         return (
             <div className="flex min-h-[50vh] items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
+                <Loader2 className={`h-8 w-8 animate-spin ${theme === "light" ? "text-[#E0562B]" : "text-[#EFA163]"}`} />
             </div>
         );
     }
@@ -63,8 +73,10 @@ export default function ServiceDetailsPage() {
     if (!service) {
         return (
             <div className="flex min-h-[50vh] flex-col items-center justify-center">
-                <h2 className="text-2xl font-bold text-white">Service not found</h2>
-                <Link href="/dashboard" className="mt-4 text-purple-400 hover:text-purple-300">
+                <h2 className={`text-2xl font-bold ${theme === "light" ? "text-[#123A9C]" : "text-white"}`}>
+                    Service not found
+                </h2>
+                <Link href="/dashboard" className={`mt-4 ${theme === "light" ? "text-[#E0562B] hover:text-[#C9471F]" : "text-[#EFA163] hover:text-[#E0562B]"}`}>
                     Back to Dashboard
                 </Link>
             </div>
@@ -78,54 +90,41 @@ export default function ServiceDetailsPage() {
                 animate={{ opacity: 1, y: 0 }}
                 className="w-full max-w-2xl"
             >
-                <Link href="/dashboard" className="mb-8 inline-flex items-center text-sm text-gray-400 hover:text-white transition-colors">
+                <Link 
+                    href="/dashboard" 
+                    className={`mb-8 inline-flex items-center text-sm transition-colors ${
+                        theme === "light" ? "text-gray-600 hover:text-[#E0562B]" : "text-gray-400 hover:text-white"
+                    }`}
+                >
                     <ArrowLeft size={16} className="mr-2" />
                     Back to Services
                 </Link>
 
                 <div className="mb-8">
-                    <h1 className="mb-2 text-3xl font-bold text-white">{service.name}</h1>
-                    <p className="text-gray-400">{service.description}</p>
+                    <h1 className={`mb-2 text-3xl font-bold ${theme === "light" ? "text-[#123A9C]" : "text-white"}`}>
+                        {service.name}
+                    </h1>
+                    <p className={theme === "light" ? "text-gray-600" : "text-gray-400"}>
+                        {service.description}
+                    </p>
                 </div>
 
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-8 backdrop-blur-sm">
-                    <form onSubmit={handleSubmit}>
-                        <div className="mb-6">
-                            <label htmlFor="requirements" className="mb-2 block text-sm font-medium text-gray-300">
-                                Project Requirements
-                            </label>
-                            <textarea
-                                id="requirements"
-                                value={requirements}
-                                onChange={(e) => setRequirements(e.target.value)}
-                                required
-                                rows={6}
-                                className="w-full rounded-xl border border-white/10 bg-black/50 p-4 text-white placeholder-gray-500 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
-                                placeholder="Describe your project, preferences, and any specific requirements..."
-                            />
+                <div className={`rounded-2xl border p-8 backdrop-blur-sm ${
+                    theme === "light"
+                        ? "border-gray-200 bg-white shadow-lg"
+                        : "border-white/10 bg-white/5"
+                }`}>
+                    {error && (
+                        <div className={`mb-6 rounded-lg p-4 text-sm ${
+                            theme === "light"
+                                ? "bg-red-50 text-red-600"
+                                : "bg-red-500/10 text-red-400"
+                        }`}>
+                            {error}
                         </div>
+                    )}
 
-                        {error && (
-                            <div className="mb-6 rounded-lg bg-red-500/10 p-4 text-sm text-red-400">
-                                {error}
-                            </div>
-                        )}
-
-                        <button
-                            type="submit"
-                            disabled={submitting}
-                            className="flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 px-6 py-3 font-semibold text-white transition-all hover:opacity-90 disabled:opacity-50"
-                        >
-                            {submitting ? (
-                                <>
-                                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                                    Submitting Request...
-                                </>
-                            ) : (
-                                "Submit Request"
-                            )}
-                        </button>
-                    </form>
+                    <MultiStepForm onSubmit={handleSubmit} submitting={submitting} />
                 </div>
             </motion.div>
         </div>

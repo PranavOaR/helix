@@ -7,8 +7,7 @@ import {
   signOut,
   onAuthStateChanged
 } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
-import { auth, googleProvider, db } from "../lib/firebase";
+import { auth, googleProvider } from "../lib/firebase";
 import { getUserProfile, UserProfile } from "../lib/api";
 
 export type UserRole = "USER" | "ADMIN";
@@ -35,24 +34,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const resolveUserRole = async (firebaseUser: User): Promise<UserRole> => {
     try {
-      // 1. Try Backend Endpoint
-      // Note: We use the raw fetch here or api.ts helper. 
-      // api.ts getUserProfile already handles safe try/catch
+      // Try Backend Endpoint only - avoid Firestore to prevent offline errors
       const backendProfile = await getUserProfile();
       if (backendProfile && backendProfile.role) {
         return backendProfile.role as UserRole;
       }
-
-      // 2. Fallback to Firestore
-      if (db) {
-        const userDocRef = doc(db, "users", firebaseUser.uid);
-        const userDoc = await getDoc(userDocRef);
-        if (userDoc.exists() && userDoc.data().role) {
-          return userDoc.data().role as UserRole;
-        }
-      }
     } catch (error) {
       console.error("Role resolution error:", error);
+      // Continue to default fallback
     }
 
     return "USER"; // Default safe fallback

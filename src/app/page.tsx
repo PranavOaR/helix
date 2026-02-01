@@ -114,66 +114,114 @@ function useParallax(speed: number = 0.5, maxOffset: number = 150) {
 // NAVBAR
 // ============================================
 function Navbar() {
-  const navItems = [
-    {
-      title: "Services",
-      icon: <IconBriefcase className="h-full w-full" />,
-      href: "#services",
-    },
-    {
-      title: "How It Works",
-      icon: <IconRoute className="h-full w-full" />,
-      href: "#how-it-works",
-    },
-    {
-      title: "Why Helix",
-      icon: <IconSparkles className="h-full w-full" />,
-      href: "#why-helix",
-    },
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const navLinks = [
+    { name: "Services", href: "#services" },
+    { name: "How it works", href: "#how-it-works" },
+    { name: "Why helix", href: "#why-helix" },
   ];
 
   return (
-    <nav
-      className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl border-b border-brand-navy/5"
-      role="navigation"
-      aria-label="Main navigation"
+    <header 
+      className={`fixed top-4 left-0 right-0 z-50 transition-all duration-300 ${
+        isScrolled ? "top-2" : "top-4"
+      }`}
     >
-      <div className="max-w-7xl mx-auto px-6 lg:px-8">
-        <div className="grid grid-cols-3 items-center h-16">
-          {/* Logo - left aligned */}
-          <Link href="/" className="flex items-center gap-3" aria-label="Helix - Home">
-            <Image
-              src="/logo.png"
-              alt=""
-              width={40}
-              height={32}
-              priority
-              className="object-contain mix-blend-multiply"
-            />
-            <span className="text-xl font-bold text-brand-navy">Helix</span>
+      <nav className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div 
+          className={`flex items-center justify-between h-16 px-6 rounded-full backdrop-blur-xl border transition-all duration-300 ${
+            isScrolled 
+              ? "bg-white/70 border-white/40 shadow-[0_8px_32px_rgba(73,155,217,0.15)]" 
+              : "bg-white/60 border-white/30 shadow-[0_4px_16px_rgba(0,0,0,0.05)]"
+          }`}
+          style={{
+            backdropFilter: 'blur(20px) saturate(180%)',
+            WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+          }}
+        >
+          {/* Logo */}
+          <Link href="/" className="flex items-center" aria-label="Helix - Home">
+            <BrandLogo variant="navbar" />
           </Link>
 
-          {/* Nav Dock - center aligned */}
-          <div className="flex justify-center">
-            <NavDock items={navItems} />
+          {/* Desktop Nav */}
+          <div className="hidden md:flex items-center gap-8">
+            {navLinks.map((link) => (
+              <a
+                key={link.name}
+                href={link.href}
+                className="text-sm text-[#123A9C] hover:text-[#E0562B] transition-colors font-semibold"
+              >
+                {link.name}
+              </a>
+            ))}
           </div>
 
-          {/* CTA & Mobile Menu - right aligned */}
-          <div className="flex items-center justify-end gap-4">
-            <Link href="/auth" className="hidden sm:block text-sm text-brand-navy/60 hover:text-brand-navy transition-colors">
-              Sign In
+          {/* Desktop Login Button */}
+          <div className="hidden md:flex items-center">
+            <Link href="/auth">
+              <button 
+                className="bg-gradient-to-r from-[#E0562B] to-[#C9471F] hover:from-[#C9471F] hover:to-[#89100D] text-white font-semibold px-6 py-2 rounded-full transition-all duration-300 hover:shadow-[0_4px_20px_rgba(224,86,43,0.4)] hover:scale-105 text-sm"
+              >
+                Login
+              </button>
             </Link>
-            <Link
-              href="/auth"
-              className="hidden sm:block px-4 py-2 bg-gradient-to-r from-brand-orange to-brand-red-light text-white text-sm font-medium rounded-lg transition-all hover:shadow-lg hover:shadow-brand-orange/25 hover:scale-105"
-            >
-              Get Started
-            </Link>
-            <NavDockMobile items={navItems} />
           </div>
+
+          {/* Mobile menu button */}
+          <button
+            className="md:hidden text-[#123A9C] hover:text-[#E0562B]"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          >
+            {mobileMenuOpen ? <IconMail className="h-6 w-6" /> : <IconLayoutDashboard className="h-6 w-6" />}
+          </button>
         </div>
-      </div>
-    </nav>
+
+        {/* Mobile menu */}
+        {mobileMenuOpen && (
+          <div 
+            className="md:hidden mt-2 py-4 px-6 rounded-3xl bg-white/70 backdrop-blur-xl border border-white/40 shadow-[0_8px_32px_rgba(0,0,0,0.1)]"
+            style={{
+              backdropFilter: 'blur(20px) saturate(180%)',
+              WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+            }}
+          >
+            <div className="flex flex-col gap-4">
+              {navLinks.map((link) => (
+                <a
+                  key={link.name}
+                  href={link.href}
+                  className="text-sm text-[#123A9C] hover:text-[#E0562B] transition-colors font-semibold"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {link.name}
+                </a>
+              ))}
+              <div className="pt-4 border-t border-[#123A9C]/20">
+                <Link href="/auth">
+                  <button 
+                    className="w-full bg-gradient-to-r from-[#E0562B] to-[#C9471F] hover:from-[#C9471F] hover:to-[#89100D] text-white font-semibold py-2 rounded-full hover:scale-105 transition-all"
+                  >
+                    Login
+                  </button>
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
+      </nav>
+    </header>
   );
 }
 
@@ -1186,7 +1234,7 @@ function Footer() {
           willChange: 'transform'
         }}
       >
-        <div className="grid grid-cols-3 items-center h-20">
+        <div className="flex items-center justify-between h-20">
           {/* Logo - left aligned */}
           <div className="flex items-center gap-3">
             <Image
@@ -1197,11 +1245,6 @@ function Footer() {
               className="object-contain mix-blend-multiply"
             />
             <span className="text-xl font-bold text-brand-navy">Helix</span>
-          </div>
-
-          {/* NavDock Links - center aligned */}
-          <div className="flex justify-center">
-            <NavDock items={footerNavItems} />
           </div>
 
           {/* Copyright - right aligned */}
