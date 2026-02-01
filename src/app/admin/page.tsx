@@ -44,8 +44,8 @@ export default function AdminDashboard() {
             const lowerSearch = search.toLowerCase();
             result = result.filter(
                 r =>
-                    r.service_type.toLowerCase().includes(lowerSearch) ||
-                    r.requirements_text.toLowerCase().includes(lowerSearch) ||
+                    (r.service_type && r.service_type.toLowerCase().includes(lowerSearch)) ||
+                    (r.requirements_text && r.requirements_text.toLowerCase().includes(lowerSearch)) ||
                     (r.user_email && r.user_email.toLowerCase().includes(lowerSearch))
             );
         }

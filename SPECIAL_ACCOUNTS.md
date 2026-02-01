@@ -4,25 +4,41 @@ Pre-configured accounts with assigned roles.
 
 ## Admin Account
 - **Email:** shashiii3110@helix.com
+- **Password:** Admin@123456
 - **Role:** ADMIN
 - **Access:** Full admin dashboard access
 
 ## User Account
-- **Email:** shashiii3111@helix.com  
+- **Email:** shashiii3111@helix.com
+- **Password:** User@123456
 - **Role:** USER
 - **Access:** Regular user dashboard
 
 ## How to Use
 
-### First Time Setup
+### First Time Setup (REQUIRED)
+**⚠️ Important: You must SIGN UP first, not login!**
+
 1. Go to http://localhost:3000/auth
-2. Sign up using one of the emails above
-3. Use any password (Firebase will validate)
-4. The system will automatically assign the pre-configured role
+2. **Click the "Sign Up" tab** (not Login)
+3. Fill in the form:
+   - **Admin Account:**
+     - Email: `shashiii3110@helix.com`
+     - Password: `Admin@123456`
+     - Brand Name: `Helix Admin - Shashi`
+   
+   - **User Account:**
+     - Email: `shashiii3111@helix.com`
+     - Password: `User@123456`
+     - Brand Name: `Helix User - Shashi`
+
+4. Click "Create Account"
+5. The system will automatically assign the pre-configured role from the database
 
 ### Subsequent Logins
-- Use the same email and password
-- Role is automatically applied from database
+After signing up, you can login with:
+- **Admin Login:** shashiii3110@helix.com / Admin@123456
+- **User Login:** shashiii3111@helix.com / User@123456
 
 ## What Each Role Can Do
 

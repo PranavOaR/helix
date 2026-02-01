@@ -254,15 +254,23 @@ def get_user_profile(request):
     email = token_data.get('email', '') if token_data else ''
     
     try:
-        # Get or create brand for this user
-        brand, created = Brand.objects.get_or_create(
-            uid=firebase_uid,
-            defaults={
-                'brand_name': token_data.get('name', email.split('@')[0]) if token_data else 'User',
-                'email': email,
-                'role': 'USER'  # Default role
-            }
-        )
+        # First, try to find existing user by email (for pre-configured accounts)
+        try:
+            brand = Brand.objects.get(email=email)
+            # Update UID if it's a pre-configured account
+            if brand.uid != firebase_uid:
+                brand.uid = firebase_uid
+                brand.save()
+        except Brand.DoesNotExist:
+            # If not found by email, get or create by UID
+            brand, created = Brand.objects.get_or_create(
+                uid=firebase_uid,
+                defaults={
+                    'brand_name': token_data.get('name', email.split('@')[0]) if token_data else 'User',
+                    'email': email,
+                    'role': 'USER'  # Default role
+                }
+            )
         
         serializer = BrandProfileSerializer(brand)
         return Response(serializer.data, status=status.HTTP_200_OK)
