@@ -23,6 +23,7 @@ import {
 import Link from "next/link";
 import Image from "next/image";
 import BrandLogo from "@/components/BrandLogo";
+import { CardStack, type CardStackItem } from "@/components/ui/card-stack";
 import MobileMenu from "@/components/MobileMenu";
 import { ExpandableCard } from "@/components/ui/expandable-card";
 
@@ -296,7 +297,7 @@ function Hero() {
   return (
     <section
       ref={heroRef}
-      className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16 bg-white"
+      className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16 pb-32 bg-white"
     >
 
       {/* ==========================================
@@ -438,16 +439,28 @@ function TrustSection() {
 // ============================================
 // SERVICES SECTION
 // ============================================
+// Service type extended for CardStack
+interface ServiceItem extends CardStackItem {
+  icon: React.ElementType;
+  category: string;
+  details: {
+    description: string;
+    features: string[];
+    process: string;
+  };
+}
+
 function ServicesSection() {
-  const services = [
+  const services: ServiceItem[] = [
     {
+      id: 1,
       icon: Globe,
       title: "Website Development",
       category: "Development",
       description: "Custom, responsive websites built with modern technologies for optimal performance and user experience.",
-      image: "/images/webdev.png",
+      imageSrc: "/images/webdev.png",
       details: {
-        intro: "We build lightning-fast, SEO-optimized websites that convert visitors into customers.",
+        description: "We build lightning-fast, SEO-optimized websites that convert visitors into customers.",
         features: [
           "Custom Next.js & React Development",
           "E-commerce Solutions with Shopify or Custom",
@@ -455,17 +468,18 @@ function ServicesSection() {
           "Performance Optimization & Core Web Vitals",
           "Responsive Design for All Devices",
         ],
-        process: "Our development process starts with understanding your business goals. We then create wireframes, design mockups, and develop your site with clean, maintainable code. Every website includes SEO optimization, analytics setup, and thorough testing.",
+        process: "Our development process starts with understanding your business goals. We then create wireframes, design mockups, and develop your site with clean, maintainable code.",
       },
     },
     {
+      id: 2,
       icon: Palette,
       title: "UI/UX Design",
       category: "Design",
       description: "Intuitive interfaces and seamless experiences that delight users and drive conversions.",
-      image: "/images/uiux.jpg",
+      imageSrc: "/images/uiux.jpg",
       details: {
-        intro: "Create memorable digital experiences with user-centered design that drives engagement and conversions.",
+        description: "Create memorable digital experiences with user-centered design that drives engagement and conversions.",
         features: [
           "User Research & Persona Development",
           "Wireframing & Prototyping in Figma",
@@ -473,17 +487,18 @@ function ServicesSection() {
           "Usability Testing & Iteration",
           "Interaction Design & Micro-animations",
         ],
-        process: "We dive deep into understanding your users through research and testing. Our iterative design process ensures every interface is intuitive, accessible, and aligned with your brand identity.",
+        process: "We dive deep into understanding your users through research and testing. Our iterative design process ensures every interface is intuitive and accessible.",
       },
     },
     {
+      id: 3,
       icon: Brush,
       title: "Branding & Identity",
       category: "Branding",
       description: "Memorable brand identities that tell your story and connect with your target audience.",
-      image: "/images/brand.jpg",
+      imageSrc: "/images/brand.jpg",
       details: {
-        intro: "Build a brand that resonates with your audience and stands out in a crowded market.",
+        description: "Build a brand that resonates with your audience and stands out in a crowded market.",
         features: [
           "Logo Design & Visual Identity",
           "Brand Strategy & Positioning",
@@ -491,17 +506,18 @@ function ServicesSection() {
           "Brand Guidelines & Style Guides",
           "Marketing Collateral Design",
         ],
-        process: "We start with discovery sessions to understand your vision, values, and target audience. From there, we craft a cohesive brand identity that tells your unique story and creates lasting impressions.",
+        process: "We start with discovery sessions to understand your vision, values, and target audience. From there, we craft a cohesive brand identity.",
       },
     },
     {
+      id: 4,
       icon: Smartphone,
       title: "App Development",
       category: "Development",
       description: "Native and cross-platform mobile applications that engage users on any device.",
-      image: "/images/app.png",
+      imageSrc: "/images/app.png",
       details: {
-        intro: "Launch powerful mobile applications that your users will love and keep coming back to.",
+        description: "Launch powerful mobile applications that your users will love and keep coming back to.",
         features: [
           "iOS & Android Native Development",
           "React Native Cross-Platform Apps",
@@ -509,17 +525,18 @@ function ServicesSection() {
           "Push Notifications & Real-time Features",
           "Backend API Development & Integration",
         ],
-        process: "From concept to launch, we guide you through the entire app development lifecycle. We focus on performance, user experience, and scalability to ensure your app succeeds in competitive app stores.",
+        process: "From concept to launch, we guide you through the entire app development lifecycle with focus on performance and scalability.",
       },
     },
     {
+      id: 5,
       icon: ImageIcon,
       title: "Canva & Social Creatives",
       category: "Marketing",
       description: "Eye-catching social media graphics and marketing materials that stand out.",
-      image: "/images/canva.jpg",
+      imageSrc: "/images/canva.jpg",
       details: {
-        intro: "Elevate your social media presence with scroll-stopping graphics and cohesive visual content.",
+        description: "Elevate your social media presence with scroll-stopping graphics and cohesive visual content.",
         features: [
           "Social Media Post Templates",
           "Instagram Stories & Reels Graphics",
@@ -527,7 +544,7 @@ function ServicesSection() {
           "Email Marketing Templates",
           "Presentation & Pitch Deck Design",
         ],
-        process: "We create a library of on-brand templates and assets that make it easy for your team to produce consistent, professional content. Each design is optimized for engagement across all platforms.",
+        process: "We create a library of on-brand templates and assets that make it easy for your team to produce consistent, professional content.",
       },
     },
   ];
@@ -535,7 +552,7 @@ function ServicesSection() {
   const { ref, translateY } = useParallax(0.8);
 
   return (
-    <section id="services" ref={ref} className="py-32 relative overflow-hidden bg-black rounded-t-[40px] sm:rounded-t-[60px] lg:rounded-t-[80px] -mt-10 z-[2]">
+    <section id="services" ref={ref} className="pt-32 pb-48 relative overflow-hidden bg-black rounded-t-[40px] sm:rounded-t-[60px] lg:rounded-t-[80px] -mt-10 z-[2] section-black-overlap">
       {/* Layer 1: Background (Moves opposite) */}
       <div
         className="absolute inset-0 pointer-events-none overflow-hidden"
@@ -562,7 +579,7 @@ function ServicesSection() {
           whileInView="visible"
           viewport={{ once: true, margin: "-100px" }}
           variants={fadeInUp}
-          className="text-center mb-20"
+          className="text-center mb-12"
         >
           <span className="inline-block text-sm font-bold text-brand-orange mb-4 uppercase tracking-widest">
             Our Services
@@ -571,45 +588,33 @@ function ServicesSection() {
             Services We Provide
           </h2>
           <p className="text-xl text-white/60 max-w-2xl mx-auto leading-relaxed">
-            Everything you need to build and grow your brand, all in one place. Click any service to learn more.
+            Everything you need to build and grow your brand. Click any service to learn more.
           </p>
         </motion.div>
 
-        {/* Services Grid with Expandable Cards */}
+        {/* CardStack for Services - with expandable cards */}
         <motion.div
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-100px" }}
-          variants={staggerContainer}
-          className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8"
+          variants={fadeInUp}
         >
-          {services.map((service, index) => (
-            <motion.div key={index} variants={fadeInUp}>
-              <ExpandableCard
-                title={service.title}
-                description={service.category}
-                src={service.image}
-                className="h-full"
-              >
-                <p className="text-lg font-medium text-brand-navy">
-                  {service.details.intro}
-                </p>
-
-                <h4>What&apos;s Included</h4>
-                <ul className="space-y-2">
-                  {service.details.features.map((feature, i) => (
-                    <li key={i} className="flex items-start gap-3">
-                      <CheckCircle className="w-5 h-5 text-brand-orange shrink-0 mt-0.5" />
-                      <span>{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-
-                <h4>Our Process</h4>
-                <p>{service.details.process}</p>
-              </ExpandableCard>
-            </motion.div>
-          ))}
+          <CardStack
+            items={services}
+            initialIndex={0}
+            autoAdvance
+            intervalMs={3500}
+            pauseOnHover
+            showDots
+            cardWidth={380}
+            cardHeight={280}
+            maxVisible={5}
+            overlap={0.5}
+            spreadDeg={35}
+            activeScale={1.05}
+            inactiveScale={0.9}
+            expandable
+          />
         </motion.div>
       </div>
     </section>
@@ -647,7 +652,7 @@ function HowItWorksSection() {
     <section
       id="how-it-works"
       ref={ref}
-      className="py-32 bg-white relative overflow-hidden rounded-t-[40px] sm:rounded-t-[60px] lg:rounded-t-[80px] -mt-10 z-[3]"
+      className="pt-32 pb-48 bg-white relative overflow-hidden rounded-t-[40px] sm:rounded-t-[60px] lg:rounded-t-[80px] -mt-10 z-[3] section-white-overlap"
     >
       {/* Layer 1: Background (Moves opposite) */}
       <div
@@ -747,7 +752,7 @@ function ProjectTrackingSection() {
   return (
     <section
       ref={ref}
-      className="py-24 overflow-hidden bg-black relative rounded-t-[40px] sm:rounded-t-[60px] lg:rounded-t-[80px] -mt-10 z-[4]"
+      className="pt-24 pb-40 overflow-hidden bg-black relative rounded-t-[40px] sm:rounded-t-[60px] lg:rounded-t-[80px] -mt-10 z-[4] section-black-overlap"
     >
       {/* Parallax Background Elements */}
       <div
@@ -897,7 +902,7 @@ function WhyHelixSection() {
     <section
       id="why-helix"
       ref={ref}
-      className="py-24 bg-white relative overflow-hidden rounded-t-[40px] sm:rounded-t-[60px] lg:rounded-t-[80px] -mt-10 z-[5]"
+      className="pt-24 pb-40 bg-white relative overflow-hidden rounded-t-[40px] sm:rounded-t-[60px] lg:rounded-t-[80px] -mt-10 z-[5] section-white-overlap"
     >
       {/* Layer 1: Background (Moves opposite) */}
       <div
@@ -1077,7 +1082,7 @@ function FinalCTASection() {
   const { ref, translateY } = useParallax(0.25);
 
   return (
-    <section ref={ref} className="py-24 overflow-hidden relative bg-black rounded-t-[40px] sm:rounded-t-[60px] lg:rounded-t-[80px] -mt-10 z-[6]">
+    <section ref={ref} className="pt-24 pb-40 overflow-hidden relative bg-black rounded-t-[40px] sm:rounded-t-[60px] lg:rounded-t-[80px] -mt-10 z-[6] section-black-overlap">
       {/* Layer 1: Background (Moves opposite) */}
       <div
         className="absolute inset-0 pointer-events-none overflow-hidden"
@@ -1127,10 +1132,30 @@ function FinalCTASection() {
 // ============================================
 function Footer() {
   const currentYear = new Date().getFullYear();
+  const { ref, translateY } = useParallax(0.2);
 
   return (
-    <footer className="py-12 border-t border-brand-navy/10 bg-white" role="contentinfo">
-      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+    <footer
+      ref={ref}
+      className="py-16 relative overflow-hidden bg-white rounded-t-[40px] sm:rounded-t-[60px] lg:rounded-t-[80px] -mt-10 z-[7] section-white-overlap"
+      role="contentinfo"
+    >
+      {/* Layer 1: Background (Moves opposite) */}
+      <div
+        className="absolute inset-0 pointer-events-none overflow-hidden"
+        style={{ transform: `translate3d(0, ${-translateY * 0.4}px, 0) scale(1.05)`, willChange: 'transform' }}
+      >
+        <div className="absolute bottom-0 left-1/4 w-[400px] h-[400px] bg-brand-orange/5 rounded-full blur-[150px]" />
+      </div>
+
+      {/* Layer 2: Content */}
+      <div
+        className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10"
+        style={{
+          transform: `translate3d(0, ${translateY}px, 0)`,
+          willChange: 'transform'
+        }}
+      >
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           {/* Logo */}
           <div className="flex items-center gap-3">

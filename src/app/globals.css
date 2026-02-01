@@ -130,6 +130,7 @@ body {
 
 /* Reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
+
   *,
   *::before,
   *::after {
@@ -202,8 +203,31 @@ body {
     opacity: 0;
     transform: translateY(8px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* ============================================
+   SECTION OVERLAP FIX
+   Uses box-shadow to fill gaps at rounded corners
+   ============================================ */
+
+/* Black sections - inset shadow fills corners */
+.section-black-overlap {
+  box-shadow: 0 -80px 0 0 black;
+}
+
+/* White sections - inset shadow fills corners */
+.section-white-overlap {
+  box-shadow: 0 -80px 0 0 white;
+}
+
+/* Extra bottom padding for sections to prevent text being covered by next section */
+/* Apply to sections that have content that might get covered */
+.section-extra-bottom {
+  padding-bottom: 6rem !important;
+  /* 96px */
 }
