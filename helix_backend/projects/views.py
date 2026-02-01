@@ -255,14 +255,15 @@ def get_user_profile(request):
     
     try:
         # First, try to find existing user by email (for pre-configured accounts)
+        brand = None
         try:
             brand = Brand.objects.get(email=email)
-            # Update UID if it's a pre-configured account
+            # Update UID if it's different (e.g., from placeholder to real Firebase UID)
             if brand.uid != firebase_uid:
                 brand.uid = firebase_uid
                 brand.save()
         except Brand.DoesNotExist:
-            # If not found by email, get or create by UID
+            # If not found by email, try to get or create by UID
             brand, created = Brand.objects.get_or_create(
                 uid=firebase_uid,
                 defaults={
