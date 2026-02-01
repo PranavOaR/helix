@@ -1184,7 +1184,7 @@ function Footer() {
           willChange: 'transform'
         }}
       >
-        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="flex items-center justify-between h-20">
           {/* Logo */}
           <div className="flex items-center gap-3">
             <Image
@@ -1197,7 +1197,7 @@ function Footer() {
             <span className="text-xl font-bold text-brand-navy">Helix</span>
           </div>
 
-          {/* NavDock Links */}
+          {/* NavDock Links - centered */}
           <NavDock items={footerNavItems} />
 
           {/* Copyright */}
