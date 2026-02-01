@@ -20,9 +20,11 @@ import {
   ArrowRight,
   ChevronRight,
 } from "lucide-react";
+import { IconBriefcase, IconRoute, IconSparkles } from "@tabler/icons-react";
 import Link from "next/link";
 import Image from "next/image";
 import BrandLogo from "@/components/BrandLogo";
+import { NavDock, NavDockMobile } from "@/components/ui/nav-dock";
 import { CardStack, type CardStackItem } from "@/components/ui/card-stack";
 import MobileMenu from "@/components/MobileMenu";
 import { ExpandableCard } from "@/components/ui/expandable-card";
@@ -112,6 +114,24 @@ function useParallax(speed: number = 0.5, maxOffset: number = 150) {
 // NAVBAR
 // ============================================
 function Navbar() {
+  const navItems = [
+    {
+      title: "Services",
+      icon: <IconBriefcase className="h-full w-full" />,
+      href: "#services",
+    },
+    {
+      title: "How It Works",
+      icon: <IconRoute className="h-full w-full" />,
+      href: "#how-it-works",
+    },
+    {
+      title: "Why Helix",
+      icon: <IconSparkles className="h-full w-full" />,
+      href: "#why-helix",
+    },
+  ];
+
   return (
     <nav
       className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl border-b border-brand-navy/5"
@@ -119,7 +139,7 @@ function Navbar() {
       aria-label="Main navigation"
     >
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-20">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3" aria-label="Helix - Home">
             <Image
@@ -133,18 +153,8 @@ function Navbar() {
             <span className="text-xl font-bold text-brand-navy">Helix</span>
           </Link>
 
-          {/* Nav Links - Desktop */}
-          <div className="hidden md:flex items-center gap-8">
-            <a href="#services" className="text-sm text-brand-navy/60 hover:text-brand-navy transition-colors">
-              Services
-            </a>
-            <a href="#how-it-works" className="text-sm text-brand-navy/60 hover:text-brand-navy transition-colors">
-              How It Works
-            </a>
-            <a href="#why-helix" className="text-sm text-brand-navy/60 hover:text-brand-navy transition-colors">
-              Why Helix
-            </a>
-          </div>
+          {/* Nav Dock - Center (Desktop) */}
+          <NavDock items={navItems} />
 
           {/* CTA & Mobile Menu */}
           <div className="flex items-center gap-4">
@@ -157,7 +167,7 @@ function Navbar() {
             >
               Get Started
             </Link>
-            <MobileMenu />
+            <NavDockMobile items={navItems} />
           </div>
         </div>
       </div>
@@ -606,8 +616,8 @@ function ServicesSection() {
             intervalMs={3500}
             pauseOnHover
             showDots
-            cardWidth={380}
-            cardHeight={280}
+            cardWidth={420}
+            cardHeight={320}
             maxVisible={5}
             overlap={0.5}
             spreadDeg={35}

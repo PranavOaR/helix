@@ -118,12 +118,30 @@ function ExpandedCardModal<T extends CardStackItem>({
     const modalRef = React.useRef<HTMLDivElement>(null);
     const Icon = item.icon;
 
-    // Lock body scroll when mounted
+    // Lock body scroll when mounted - more aggressive approach
     React.useEffect(() => {
-        const originalOverflow = document.body.style.overflow;
+        const scrollY = window.scrollY;
+        const originalStyle = {
+            overflow: document.body.style.overflow,
+            position: document.body.style.position,
+            top: document.body.style.top,
+            left: document.body.style.left,
+            right: document.body.style.right,
+        };
+
         document.body.style.overflow = "hidden";
+        document.body.style.position = "fixed";
+        document.body.style.top = `-${scrollY}px`;
+        document.body.style.left = "0";
+        document.body.style.right = "0";
+
         return () => {
-            document.body.style.overflow = originalOverflow;
+            document.body.style.overflow = originalStyle.overflow;
+            document.body.style.position = originalStyle.position;
+            document.body.style.top = originalStyle.top;
+            document.body.style.left = originalStyle.left;
+            document.body.style.right = originalStyle.right;
+            window.scrollTo(0, scrollY);
         };
     }, []);
 
@@ -145,7 +163,6 @@ function ExpandedCardModal<T extends CardStackItem>({
                 onClose();
             }
         };
-        // Use setTimeout to prevent immediate close from the same click
         const timer = setTimeout(() => {
             document.addEventListener("mousedown", handleClickOutside);
             document.addEventListener("touchstart", handleClickOutside);
@@ -159,102 +176,114 @@ function ExpandedCardModal<T extends CardStackItem>({
     }, [onClose]);
 
     return (
-        <div className="fixed inset-0 z-[201] flex items-center justify-center p-4 sm:p-8">
+        <div className="fixed inset-0 z-[201] flex items-center justify-center p-4 sm:p-8 bg-black/60 backdrop-blur-sm">
             <motion.div
                 ref={modalRef}
                 layoutId={`card-stack-item-${item.id}`}
-                className="w-full max-w-[900px] max-h-[85vh] flex flex-col rounded-2xl bg-gradient-to-br from-neutral-900 to-neutral-800 shadow-2xl border border-white/10 relative overflow-hidden"
+                className="w-full max-w-[900px] max-h-[90vh] rounded-2xl bg-gradient-to-br from-neutral-900 to-neutral-800 shadow-2xl border border-white/10 relative overflow-hidden"
                 transition={
                     reduceMotion
                         ? { duration: 0 }
                         : { type: "spring", stiffness: 300, damping: 30 }
                 }
             >
-                {/* Header with gradient */}
-                <div className="relative flex-shrink-0 p-6 sm:p-8 border-b border-white/10 bg-gradient-to-r from-brand-orange/10 to-brand-red-light/10">
-                    <div className="flex justify-between items-start gap-4">
-                        <div className="flex-1">
-                            {/* Icon and Category */}
-                            <div className="flex items-center gap-4 mb-4">
-                                {Icon && (
-                                    <motion.div
-                                        layoutId={`card-stack-icon-${item.id}`}
-                                        className="w-14 h-14 rounded-xl bg-brand-orange/20 border border-brand-orange/30 flex items-center justify-center"
-                                    >
-                                        <Icon className="w-7 h-7 text-brand-orange" />
-                                    </motion.div>
-                                )}
-                                {item.category && (
-                                    <motion.span
-                                        layoutId={`card-stack-category-${item.id}`}
-                                        className="text-xs font-medium text-brand-orange uppercase tracking-wider px-3 py-1 bg-brand-orange/10 rounded-full"
-                                    >
-                                        {item.category}
-                                    </motion.span>
-                                )}
-                            </div>
+                {/* Close Button - Fixed position */}
+                <motion.button
+                    layoutId={`card-stack-close-${item.id}`}
+                    aria-label="Close card"
+                    className="absolute top-4 right-4 z-20 h-10 w-10 shrink-0 flex items-center justify-center rounded-full bg-black/60 text-white hover:bg-brand-orange hover:text-white border border-white/20 hover:border-brand-orange transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-brand-orange"
+                    onClick={onClose}
+                >
+                    <X className="w-5 h-5" />
+                </motion.button>
 
-                            {/* Title */}
-                            <motion.h3
-                                layoutId={`card-stack-title-${item.id}`}
-                                className="font-bold text-white text-2xl sm:text-3xl lg:text-4xl"
-                            >
-                                {item.title}
-                            </motion.h3>
+                {/* Single Scrollable Content Area */}
+                <div className="overflow-y-auto max-h-[90vh]">
+                    {/* Hero Image Section */}
+                    {item.imageSrc && (
+                        <div className="relative w-full h-[250px] sm:h-[300px] lg:h-[350px]">
+                            <img
+                                src={item.imageSrc}
+                                alt={item.title}
+                                className="w-full h-full object-cover"
+                            />
+                            {/* Gradient overlay at bottom for text readability */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-neutral-900 via-transparent to-transparent" />
+                        </div>
+                    )}
 
-                            {/* Short description */}
-                            {item.description && (
-                                <motion.p
-                                    layoutId={`card-stack-desc-${item.id}`}
-                                    className="text-white/70 mt-2 text-base sm:text-lg"
+                    {/* Content Section */}
+                    <div className="p-6 sm:p-8">
+                        {/* Icon and Category Row */}
+                        <div className="flex items-center gap-4 mb-4">
+                            {Icon && (
+                                <motion.div
+                                    layoutId={`card-stack-icon-${item.id}`}
+                                    className="w-14 h-14 rounded-xl bg-brand-orange/20 border border-brand-orange/30 flex items-center justify-center"
                                 >
-                                    {item.description}
-                                </motion.p>
+                                    <Icon className="w-7 h-7 text-brand-orange" />
+                                </motion.div>
+                            )}
+                            {item.category && (
+                                <motion.span
+                                    layoutId={`card-stack-category-${item.id}`}
+                                    className="text-xs font-medium text-brand-orange uppercase tracking-wider px-3 py-1 bg-brand-orange/10 rounded-full"
+                                >
+                                    {item.category}
+                                </motion.span>
                             )}
                         </div>
 
-                        {/* Close Button */}
-                        <motion.button
-                            layoutId={`card-stack-close-${item.id}`}
-                            aria-label="Close card"
-                            className="h-10 w-10 shrink-0 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-brand-orange hover:text-white border border-white/20 hover:border-brand-orange transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-brand-orange"
-                            onClick={onClose}
+                        {/* Title */}
+                        <motion.h3
+                            layoutId={`card-stack-title-${item.id}`}
+                            className="font-bold text-white text-2xl sm:text-3xl lg:text-4xl mb-3"
                         >
-                            <X className="w-5 h-5" />
-                        </motion.button>
-                    </div>
-                </div>
+                            {item.title}
+                        </motion.h3>
 
-                {/* Scrollable Content */}
-                <div className="flex-1 overflow-y-auto">
-                    <motion.div
-                        initial={reduceMotion ? false : { opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.2 }}
-                        className="p-6 sm:p-8"
-                    >
-                        {renderExpandedContent ? (
-                            renderExpandedContent(item)
-                        ) : (
-                            <DefaultExpandedContent item={item} />
+                        {/* Short description */}
+                        {item.description && (
+                            <motion.p
+                                layoutId={`card-stack-desc-${item.id}`}
+                                className="text-white/70 text-base sm:text-lg mb-6"
+                            >
+                                {item.description}
+                            </motion.p>
                         )}
-                    </motion.div>
-                </div>
 
-                {/* Footer CTA */}
-                {item.href && (
-                    <div className="flex-shrink-0 p-6 sm:p-8 border-t border-white/10 bg-black/20">
-                        <a
-                            href={item.href}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-brand-orange to-brand-red-light text-white font-semibold rounded-xl hover:opacity-90 transition-opacity"
+                        {/* Divider */}
+                        <div className="border-t border-white/10 my-6" />
+
+                        {/* Detailed Content */}
+                        <motion.div
+                            initial={reduceMotion ? false : { opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.2 }}
                         >
-                            {item.ctaLabel || "Learn More"}
-                            <ChevronRight className="w-5 h-5" />
-                        </a>
+                            {renderExpandedContent ? (
+                                renderExpandedContent(item)
+                            ) : (
+                                <DefaultExpandedContent item={item} />
+                            )}
+                        </motion.div>
+
+                        {/* Footer CTA */}
+                        {item.href && (
+                            <div className="mt-8 pt-6 border-t border-white/10">
+                                <a
+                                    href={item.href}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-brand-orange to-brand-red-light text-white font-semibold rounded-xl hover:opacity-90 transition-opacity"
+                                >
+                                    {item.ctaLabel || "Learn More"}
+                                    <ChevronRight className="w-5 h-5" />
+                                </a>
+                            </div>
+                        )}
                     </div>
-                )}
+                </div>
             </motion.div>
         </div>
     );
@@ -332,8 +361,8 @@ function DefaultServiceCard<T extends CardStackItem>({
                         className="h-full w-full object-cover"
                         draggable={false}
                     />
-                    {/* Dark overlay for readability */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-black/30" />
+                    {/* Dark overlay for readability - lighter for brighter images */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/10" />
                 </div>
             ) : (
                 <div className="absolute inset-0 bg-gradient-to-br from-neutral-900 to-neutral-800">
@@ -613,7 +642,7 @@ export function CardStack<T extends CardStackItem>({
                                         key={item.id}
                                         layoutId={`card-stack-item-${item.id}`}
                                         className={cn(
-                                            "absolute bottom-0 rounded-2xl border-2 border-white/20 overflow-hidden shadow-xl",
+                                            "absolute bottom-0 rounded-2xl border-2 border-white/20 overflow-hidden shadow-xl bg-black",
                                             "will-change-transform select-none",
                                             isActive
                                                 ? "cursor-pointer border-white/40"
