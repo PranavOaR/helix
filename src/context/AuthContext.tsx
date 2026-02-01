@@ -1,66 +1,112 @@
 "use client";
 
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import {
+  User,
+  signInWithPopup,
+  signOut,
+  onAuthStateChanged
+} from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
+import { auth, googleProvider, db } from "../lib/firebase";
+import { getUserProfile, UserProfile } from "../lib/api";
 
-// Mock user type (mimics Firebase User structure)
-interface MockUser {
-  uid: string;
-  email: string | null;
-  displayName: string | null;
+export type UserRole = "USER" | "ADMIN";
+
+export interface DashboardUser extends User {
+  role: UserRole;
 }
 
 interface AuthContextType {
-  user: MockUser | null;
-  loading: boolean;
-  signUp: (email: string, password: string) => Promise<void>;
-  login: (email: string, password: string) => Promise<void>;
+  user: DashboardUser | null;
+  loading: boolean; // True until initial auth check AND role resolution are done
+  authLoading: boolean; // Specific to Firebase status
+  roleLoading: boolean; // Specific to Role fetch
   loginWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Mock Auth Provider - works without Firebase credentials
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<MockUser | null>(null);
-  const [loading] = useState(false);
+  const [user, setUser] = useState<DashboardUser | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [roleLoading, setRoleLoading] = useState(false); // Only true when user is found and we are fetching role
 
-  const signUp = async (email: string, password: string) => {
-    // Mock sign up - simulate delay then set user
-    await new Promise(resolve => setTimeout(resolve, 500));
-    setUser({
-      uid: "mock-user-" + Date.now(),
-      email: email,
-      displayName: email.split("@")[0],
-    });
+  const resolveUserRole = async (firebaseUser: User): Promise<UserRole> => {
+    try {
+      // 1. Try Backend Endpoint
+      // Note: We use the raw fetch here or api.ts helper. 
+      // api.ts getUserProfile already handles safe try/catch
+      const backendProfile = await getUserProfile();
+      if (backendProfile && backendProfile.role) {
+        return backendProfile.role as UserRole;
+      }
+
+      // 2. Fallback to Firestore
+      if (db) {
+        const userDocRef = doc(db, "users", firebaseUser.uid);
+        const userDoc = await getDoc(userDocRef);
+        if (userDoc.exists() && userDoc.data().role) {
+          return userDoc.data().role as UserRole;
+        }
+      }
+    } catch (error) {
+      console.error("Role resolution error:", error);
+    }
+
+    return "USER"; // Default safe fallback
   };
 
-  const login = async (email: string, password: string) => {
-    // Mock login - simulate delay then set user
-    await new Promise(resolve => setTimeout(resolve, 500));
-    setUser({
-      uid: "mock-user-" + Date.now(),
-      email: email,
-      displayName: email.split("@")[0],
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      setAuthLoading(true);
+
+      if (firebaseUser) {
+        setRoleLoading(true);
+        // User is signed in, resolve role
+        const role = await resolveUserRole(firebaseUser);
+
+        const dashboardUser: DashboardUser = {
+          ...firebaseUser,
+          role: role,
+        };
+        setUser(dashboardUser);
+        setRoleLoading(false);
+      } else {
+        // User is signed out
+        setUser(null);
+        setRoleLoading(false);
+      }
+
+      setAuthLoading(false);
     });
-  };
+
+    return () => unsubscribe();
+  }, []);
 
   const loginWithGoogle = async () => {
-    // Mock Google login
-    await new Promise(resolve => setTimeout(resolve, 500));
-    setUser({
-      uid: "google-mock-user-" + Date.now(),
-      email: "demo@gmail.com",
-      displayName: "Demo User",
-    });
+    try {
+      await signInWithPopup(auth, googleProvider);
+    } catch (error) {
+      console.error("Google Sign-In Error:", error);
+      throw error;
+    }
   };
 
   const logout = async () => {
-    setUser(null);
+    try {
+      await signOut(auth);
+    } catch (error) {
+      console.error("Logout Error:", error);
+      throw error;
+    }
   };
 
+  const loading = authLoading || roleLoading;
+
   return (
-    <AuthContext.Provider value={{ user, loading, signUp, login, loginWithGoogle, logout }}>
+    <AuthContext.Provider value={{ user, loading, authLoading, roleLoading, loginWithGoogle, logout }}>
       {children}
     </AuthContext.Provider>
   );
