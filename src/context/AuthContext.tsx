@@ -157,6 +157,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     try {
       await signOut(auth);
+      // Redirect to auth page
+      window.location.href = '/auth';
     } catch (error) {
       console.error("Logout Error:", error);
       throw error;
