@@ -33,15 +33,18 @@ export default function DashboardPage() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5 }}
+                    className="mb-12"
                 >
-                    <h1 className={`mb-2 text-4xl font-bold ${
-                        theme === "light" ? "text-[#123A9C]" : "text-white"
-                    }`}>
+                    <h1
+                        className="mb-2 text-4xl font-bold text-white"
+                        style={{ textShadow: '0 2px 8px rgba(0,0,0,0.5)' }}
+                    >
                         What would you like to do today?
                     </h1>
-                    <p className={`mb-12 ${
-                        theme === "light" ? "text-gray-600" : "text-gray-400"
-                    }`}>
+                    <p
+                        className="text-white/80"
+                        style={{ textShadow: '0 1px 4px rgba(0,0,0,0.4)' }}
+                    >
                         Select a service to get started with your new project.
                     </p>
                 </motion.div>
@@ -49,11 +52,10 @@ export default function DashboardPage() {
                 {loading ? (
                     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                         {[1, 2, 3].map((i) => (
-                            <div 
-                                key={i} 
-                                className={`h-64 animate-pulse rounded-2xl ${
-                                    theme === "light" ? "bg-gray-200" : "bg-white/5"
-                                }`}
+                            <div
+                                key={i}
+                                className={`h-64 animate-pulse rounded-2xl ${theme === "light" ? "bg-gray-200" : "bg-white/5"
+                                    }`}
                             />
                         ))}
                     </div>
