@@ -113,17 +113,35 @@ export default function RequestsPage() {
                         <Loader2 className={`h-8 w-8 animate-spin ${theme === "light" ? "text-[#E0562B]" : "text-[#EFA163]"}`} />
                     </div>
                 ) : error ? (
-                    <div className={`rounded-2xl border p-12 text-center ${theme === "light" ? "border-red-200 bg-red-50" : "border-red-400/20 bg-red-400/10"}`}>
+                    <div
+                        className={`rounded-2xl border p-12 text-center ${theme === "light"
+                                ? "border-red-200 bg-red-50"
+                                : "border-white/10"
+                            }`}
+                        style={theme === "dark" ? {
+                            background: 'linear-gradient(145deg, #1a1a1a 0%, #0d0d0d 50%, #1a1a1a 100%)',
+                            boxShadow: '0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08)',
+                        } : undefined}
+                    >
                         <div className={`mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full ${theme === "light" ? "bg-red-100" : "bg-red-400/20"}`}>
                             <AlertCircle size={24} className={theme === "light" ? "text-red-600" : "text-red-400"} />
                         </div>
-                        <h3 className={`mb-2 text-xl font-semibold ${theme === "light" ? "text-red-600" : "text-red-400"}`}>
+                        <h3 className={`mb-2 text-xl font-semibold ${theme === "light" ? "text-red-600" : "text-white"}`}>
                             Error Loading Requests
                         </h3>
                         <p className={theme === "light" ? "text-gray-600" : "text-gray-400"}>{error}</p>
                     </div>
                 ) : requests.length === 0 ? (
-                    <div className={`rounded-2xl border p-12 text-center backdrop-blur-sm ${theme === "light" ? "border-gray-200 bg-white shadow-lg" : "border-white/10 bg-white/5"}`}>
+                    <div
+                        className={`rounded-2xl border p-12 text-center backdrop-blur-sm ${theme === "light"
+                                ? "border-gray-200 bg-white shadow-lg"
+                                : "border-white/10"
+                            }`}
+                        style={theme === "dark" ? {
+                            background: 'linear-gradient(145deg, #1a1a1a 0%, #0d0d0d 50%, #1a1a1a 100%)',
+                            boxShadow: '0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08)',
+                        } : undefined}
+                    >
                         <div className={`mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full ${theme === "light" ? "bg-gray-100 text-gray-500" : "bg-white/10 text-gray-400"}`}>
                             <Clock size={24} />
                         </div>
