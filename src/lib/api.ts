@@ -57,6 +57,148 @@ async function fetchWithAuth(endpoint: string, options: RequestInit = {}) {
   try {
     const token = await getAuthToken();
 
+    // --- Dev Mode Bypass ---
+    if (token === 'dev-token') {
+      console.log(`[Dev Mode] Mocking request to: ${endpoint}`);
+      await new Promise(resolve => setTimeout(resolve, 600)); // Simulate latency
+
+      // Mock Data Routing
+      if (endpoint === '/projects/create/') {
+        const body = JSON.parse(options.body as string);
+        return {
+          success: true,
+          message: 'Project created successfully (Dev Mode)',
+          project: {
+            id: Math.floor(Math.random() * 1000),
+            brand: 1,
+            brand_name: 'Dev Brand',
+            brand_email: 'user@local',
+            service_type: body.service_type,
+            requirements_text: body.requirements_text,
+            status: 'submitted',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          }
+        };
+      }
+
+      if (endpoint === '/projects/my-projects/') {
+        return {
+          success: true,
+          count: 3,
+          projects: [
+            {
+              id: 101,
+              brand_name: 'Dev User Brand',
+              service_type: 'website',
+              service_type_display: 'Website Development',
+              status: 'submitted',
+              status_display: 'Submitted',
+              created_at: new Date(Date.now() - 86400000).toISOString()
+            },
+            {
+              id: 102,
+              brand_name: 'Dev User Brand',
+              service_type: 'app',
+              service_type_display: 'Mobile App',
+              status: 'in_progress',
+              status_display: 'In Progress',
+              created_at: new Date(Date.now() - 172800000).toISOString()
+            },
+            {
+              id: 103,
+              brand_name: 'Dev User Brand',
+              service_type: 'uiux',
+              service_type_display: 'UI/UX Design',
+              status: 'completed',
+              status_display: 'Completed',
+              created_at: new Date(Date.now() - 259200000).toISOString()
+            }
+          ]
+        };
+      }
+
+      if (endpoint === '/projects/user/profile/') {
+        const isDevAdmin = localStorage.getItem('helix_dev_mode') === 'admin';
+        return {
+          email: isDevAdmin ? 'admin@local' : 'user@local',
+          brand_name: isDevAdmin ? 'Dev Admin Brand' : 'Dev User Brand',
+          role: isDevAdmin ? 'ADMIN' : 'USER'
+        };
+      }
+
+      if (endpoint === '/projects/all/') {
+        return {
+          success: true,
+          count: 5,
+          projects: [
+            {
+              id: 101,
+              brand_name: 'Alice Corp',
+              service_type: 'website',
+              service_type_display: 'Website Development',
+              status: 'submitted',
+              status_display: 'Submitted',
+              created_at: new Date(Date.now() - 3600000).toISOString()
+            },
+            {
+              id: 102,
+              brand_name: 'Bob Inc',
+              service_type: 'branding',
+              service_type_display: 'Branding',
+              status: 'in_review',
+              status_display: 'In Review',
+              created_at: new Date(Date.now() - 7200000).toISOString()
+            },
+            {
+              id: 103,
+              brand_name: 'Charlie Co',
+              service_type: 'app',
+              service_type_display: 'Mobile App',
+              status: 'in_progress',
+              status_display: 'In Progress',
+              created_at: new Date(Date.now() - 10800000).toISOString()
+            },
+            {
+              id: 104,
+              brand_name: 'Delta Group',
+              service_type: 'uiux',
+              service_type_display: 'UI/UX Design',
+              status: 'completed',
+              status_display: 'Completed',
+              created_at: new Date(Date.now() - 14400000).toISOString()
+            },
+            {
+              id: 105,
+              brand_name: 'Echo Ltd',
+              service_type: 'canva',
+              service_type_display: 'Canva Design',
+              status: 'rejected',
+              status_display: 'Rejected',
+              created_at: new Date(Date.now() - 18000000).toISOString()
+            }
+          ]
+        };
+      }
+
+      if (endpoint.includes('/update-status/')) {
+        const body = JSON.parse(options.body as string);
+        return {
+          success: true,
+          message: 'Status updated successfully (Dev Mode)',
+          project: {
+            id: 123,
+            status: body.status,
+            // simplified return
+          }
+        }
+      }
+
+      throw new Error(`[Dev Mode] Endpoint not mocked: ${endpoint}`);
+    }
+
+    // --- End Dev Mode Bypass ---
+
     const headers = {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json',

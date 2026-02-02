@@ -52,6 +52,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
+    // Check for Dev Mode session restoration
+    const devMode = localStorage.getItem('helix_dev_mode');
+    if (devMode) {
+      const mockUser: DashboardUser = {
+        uid: devMode === 'admin' ? 'dev-admin-uid' : 'dev-user-uid',
+        email: devMode === 'admin' ? 'admin@local' : 'user@local',
+        displayName: devMode === 'admin' ? 'Dev Admin' : 'Dev User',
+        emailVerified: true,
+        isAnonymous: false,
+        metadata: {},
+        providerData: [],
+        refreshToken: '',
+        tenantId: null,
+        delete: async () => { },
+        getIdToken: async () => 'dev-token',
+        getIdTokenResult: async () => ({
+          token: 'dev-token',
+          authTime: Date.now().toString(),
+          issuedAtTime: Date.now().toString(),
+          expirationTime: (Date.now() + 3600).toString(),
+          signInProvider: 'custom',
+          signInSecondFactor: null,
+          claims: {}
+        }),
+        reload: async () => { },
+        toJSON: () => ({}),
+        role: devMode === 'admin' ? 'ADMIN' : 'USER',
+      };
+      setUser(mockUser);
+      setAuthLoading(false);
+      setRoleLoading(false);
+      return;
+    }
+
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setAuthLoading(true);
 
@@ -88,6 +122,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const login = async (email: string, password: string) => {
+    // Dev Mode Bypass
+    if (email === 'admin@local' && password === 'admin') {
+      localStorage.setItem('helix_dev_mode', 'admin');
+      window.location.reload(); // Reload to pick up the useEffect logic
+      return;
+    }
+    if (email === 'user@local' && password === 'user') {
+      localStorage.setItem('helix_dev_mode', 'user');
+      window.location.reload();
+      return;
+    }
+
     try {
       await signInWithEmailAndPassword(auth, email, password);
     } catch (error) {
@@ -106,6 +152,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = async () => {
+    // Clear Dev Mode
+    localStorage.removeItem('helix_dev_mode');
+
     try {
       await signOut(auth);
     } catch (error) {
