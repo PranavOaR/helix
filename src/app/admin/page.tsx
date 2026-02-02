@@ -3,9 +3,10 @@
 import { useEffect, useState } from "react";
 import { getAllProjects, updateProjectStatus } from "@/lib/api";
 import { motion } from "framer-motion";
-import { Loader2, Search, Filter, ChevronDown, Check } from "lucide-react";
+import { Loader2, Search, Filter, RefreshCw } from "lucide-react";
 import StatusDropdown from "@/components/admin/StatusDropdown";
 import { useToast } from "@/context/ToastContext";
+import { useTheme } from "@/context/ThemeContext";
 
 // Types
 // Types
@@ -27,7 +28,9 @@ export default function AdminDashboard() {
     const [filterStatus, setFilterStatus] = useState<string>("ALL");
     const [search, setSearch] = useState("");
     const [updatingId, setUpdatingId] = useState<number | null>(null);
+    const [refreshing, setRefreshing] = useState(false);
     const { showToast } = useToast();
+    const { theme } = useTheme();
 
     useEffect(() => {
         loadRequests();
@@ -56,12 +59,14 @@ export default function AdminDashboard() {
     async function loadRequests() {
         try {
             setLoading(true);
+            setRefreshing(true);
             const data = await getAllProjects();
             setRequests(data);
         } catch (error) {
             console.error("Failed to load requests", error);
         } finally {
             setLoading(false);
+            setRefreshing(false);
         }
     }
 
@@ -85,19 +90,49 @@ export default function AdminDashboard() {
     };
 
     return (
-        <div className="min-h-screen bg-black p-8">
+        <div className="min-h-screen p-8">
             <div className="mx-auto max-w-7xl">
                 <div className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-center">
                     <div>
-                        <h1 className="text-3xl font-bold text-white">Requests Management</h1>
-                        <p className="text-gray-400">Manage and update client service requests.</p>
+                        <h1
+                            className="text-3xl font-bold text-white"
+                            style={{ textShadow: '0 2px 8px rgba(0,0,0,0.5)' }}
+                        >
+                            Requests Management
+                        </h1>
+                        <p
+                            className="text-white/80"
+                            style={{ textShadow: '0 1px 4px rgba(0,0,0,0.4)' }}
+                        >
+                            Manage and update client service requests.
+                        </p>
                     </div>
-                    <button
+                    <motion.button
                         onClick={loadRequests}
-                        className="text-sm text-purple-400 hover:text-purple-300 underline"
+                        disabled={refreshing}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className={`flex items-center gap-2 px-6 py-3 rounded-2xl border transition-all duration-300 ${theme === "light"
+                            ? "border-white/40 hover:border-white/60 font-bold text-sm"
+                            : "border-white/20 hover:border-white/30 font-semibold text-sm"
+                            }`}
+                        style={theme === "dark" ? {
+                            background: 'linear-gradient(145deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%)',
+                            boxShadow: '0 4px 24px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.1)',
+                            backdropFilter: 'blur(20px) saturate(180%)',
+                            color: refreshing ? '#9CA3AF' : '#EFA163',
+                            fontSize: '0.875rem'
+                        } : {
+                            background: 'linear-gradient(145deg, rgba(255,255,255,0.7) 0%, rgba(240,240,245,0.5) 100%)',
+                            boxShadow: '0 8px 32px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.9)',
+                            backdropFilter: 'blur(20px) saturate(180%)',
+                            color: refreshing ? '#9CA3AF' : '#C9471F',
+                            fontSize: '0.875rem'
+                        }}
                     >
-                        Refresh Data
-                    </button>
+                        <RefreshCw size={16} className={refreshing ? "animate-spin" : ""} />
+                        {refreshing ? "Refreshing..." : "Refresh Data"}
+                    </motion.button>
                 </div>
 
                 {/* Filters */}
@@ -109,7 +144,11 @@ export default function AdminDashboard() {
                             placeholder="Search by email, service, or requirements..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
-                            className="w-full rounded-xl border border-white/10 bg-white/5 pl-10 pr-4 py-3 text-white placeholder-gray-500 focus:border-purple-500 focus:outline-none"
+                            className={`w-full rounded-xl border pl-10 pr-4 py-3 placeholder-gray-500 focus:outline-none transition-all ${theme === "light"
+                                    ? "border-white/40 bg-white/70 text-gray-900 focus:border-[#E0562B]"
+                                    : "border-white/10 bg-white/5 text-white focus:border-[#EFA163]"
+                                }`}
+                            style={{ backdropFilter: 'blur(10px)' }}
                         />
                     </div>
 
@@ -117,7 +156,11 @@ export default function AdminDashboard() {
                         <select
                             value={filterStatus}
                             onChange={(e) => setFilterStatus(e.target.value)}
-                            className="w-full appearance-none rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white focus:border-purple-500 focus:outline-none"
+                            className={`w-full appearance-none rounded-xl border px-4 py-3 focus:outline-none transition-all ${theme === "light"
+                                    ? "border-white/40 bg-white/70 text-gray-900 focus:border-[#E0562B]"
+                                    : "border-white/10 bg-white/5 text-white focus:border-[#EFA163]"
+                                }`}
+                            style={{ backdropFilter: 'blur(10px)' }}
                         >
                             <option value="ALL">All Statuses</option>
                             {ALL_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
@@ -127,10 +170,20 @@ export default function AdminDashboard() {
                 </div>
 
                 {/* Table */}
-                <div className="overflow-hidden rounded-xl border border-white/10 bg-white/5">
+                <div
+                    className={`overflow-hidden rounded-xl border ${theme === "light"
+                        ? "border-white/40 bg-white/70"
+                        : "border-white/10 bg-white/5"
+                        }`}
+                    style={{ backdropFilter: 'blur(20px) saturate(180%)' }}
+                >
                     <div className="overflow-x-auto">
-                        <table className="w-full text-left text-sm text-gray-400">
-                            <thead className="bg-white/5 text-xs uppercase text-gray-300">
+                        <table className={`w-full text-left text-sm ${theme === "light" ? "text-gray-700" : "text-gray-400"
+                            }`}>
+                            <thead className={`text-xs uppercase ${theme === "light"
+                                    ? "bg-white/30 text-gray-800 font-bold"
+                                    : "bg-white/5 text-gray-300"
+                                }`}>
                                 <tr>
                                     <th className="px-6 py-4">ID</th>
                                     <th className="px-6 py-4">User</th>
@@ -139,11 +192,13 @@ export default function AdminDashboard() {
                                     <th className="px-6 py-4">Status</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-white/5">
+                            <tbody className={`divide-y ${theme === "light" ? "divide-gray-200" : "divide-white/5"
+                                }`}>
                                 {loading ? (
                                     <tr>
                                         <td colSpan={5} className="px-6 py-12 text-center">
-                                            <Loader2 className="mx-auto h-8 w-8 animate-spin text-purple-500" />
+                                            <Loader2 className={`mx-auto h-8 w-8 animate-spin ${theme === "light" ? "text-[#E0562B]" : "text-[#EFA163]"
+                                                }`} />
                                         </td>
                                     </tr>
                                 ) : filteredRequests.length === 0 ? (
@@ -154,13 +209,15 @@ export default function AdminDashboard() {
                                     </tr>
                                 ) : (
                                     filteredRequests.map((request) => (
-                                        <tr key={request.id} className="hover:bg-white/5">
+                                        <tr key={request.id} className={theme === "light" ? "hover:bg-white/50" : "hover:bg-white/5"}>
                                             <td className="px-6 py-4 font-mono text-xs text-gray-500">#{request.id}</td>
-                                            <td className="px-6 py-4 font-medium text-white">
+                                            <td className={`px-6 py-4 font-medium ${theme === "light" ? "text-gray-900" : "text-white"
+                                                }`}>
                                                 {request.user_email || "Unknown User"}
                                             </td>
                                             <td className="px-6 py-4">
-                                                <span className="block text-white">{request.service_type}</span>
+                                                <span className={`block font-semibold ${theme === "light" ? "text-gray-900" : "text-white"
+                                                    }`}>{request.service_type}</span>
                                                 <span className="truncate block max-w-xs text-xs text-gray-500">{request.requirements_text}</span>
                                             </td>
                                             <td className="px-6 py-4">
