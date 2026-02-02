@@ -16,35 +16,35 @@ interface ProjectRequest {
 }
 
 const statusConfig = {
-    PENDING: { 
-        colorLight: "text-yellow-600", colorDark: "text-yellow-400", 
-        bgLight: "bg-yellow-50", bgDark: "bg-yellow-400/10", 
-        borderLight: "border-yellow-200", borderDark: "border-yellow-400/20", 
-        icon: Clock, label: "Pending" 
+    PENDING: {
+        colorLight: "text-yellow-600", colorDark: "text-yellow-400",
+        bgLight: "bg-yellow-50", bgDark: "bg-yellow-400/10",
+        borderLight: "border-yellow-200", borderDark: "border-yellow-400/20",
+        icon: Clock, label: "Pending"
     },
-    ACCEPTED: { 
-        colorLight: "text-green-600", colorDark: "text-green-400", 
-        bgLight: "bg-green-50", bgDark: "bg-green-400/10", 
-        borderLight: "border-green-200", borderDark: "border-green-400/20", 
-        icon: CheckCircle, label: "Accepted" 
+    ACCEPTED: {
+        colorLight: "text-green-600", colorDark: "text-green-400",
+        bgLight: "bg-green-50", bgDark: "bg-green-400/10",
+        borderLight: "border-green-200", borderDark: "border-green-400/20",
+        icon: CheckCircle, label: "Accepted"
     },
-    IMPLEMENTING: { 
-        colorLight: "text-blue-600", colorDark: "text-blue-400", 
-        bgLight: "bg-blue-50", bgDark: "bg-blue-400/10", 
-        borderLight: "border-blue-200", borderDark: "border-blue-400/20", 
-        icon: PlayCircle, label: "In Progress" 
+    IMPLEMENTING: {
+        colorLight: "text-blue-600", colorDark: "text-blue-400",
+        bgLight: "bg-blue-50", bgDark: "bg-blue-400/10",
+        borderLight: "border-blue-200", borderDark: "border-blue-400/20",
+        icon: PlayCircle, label: "In Progress"
     },
-    COMPLETED: { 
-        colorLight: "text-[#E0562B]", colorDark: "text-[#EFA163]", 
-        bgLight: "bg-orange-50", bgDark: "bg-[#E0562B]/10", 
-        borderLight: "border-orange-200", borderDark: "border-[#E0562B]/20", 
-        icon: CheckCircle, label: "Completed" 
+    COMPLETED: {
+        colorLight: "text-[#E0562B]", colorDark: "text-[#EFA163]",
+        bgLight: "bg-orange-50", bgDark: "bg-[#E0562B]/10",
+        borderLight: "border-orange-200", borderDark: "border-[#E0562B]/20",
+        icon: CheckCircle, label: "Completed"
     },
-    REJECTED: { 
-        colorLight: "text-red-600", colorDark: "text-red-400", 
-        bgLight: "bg-red-50", bgDark: "bg-red-400/10", 
-        borderLight: "border-red-200", borderDark: "border-red-400/20", 
-        icon: XCircle, label: "Rejected" 
+    REJECTED: {
+        colorLight: "text-red-600", colorDark: "text-red-400",
+        bgLight: "bg-red-50", bgDark: "bg-red-400/10",
+        borderLight: "border-red-200", borderDark: "border-red-400/20",
+        icon: XCircle, label: "Rejected"
     },
 };
 
@@ -94,10 +94,16 @@ export default function RequestsPage() {
                     animate={{ opacity: 1, y: 0 }}
                     className="mb-8"
                 >
-                    <h1 className={`text-3xl font-bold ${theme === "light" ? "text-[#123A9C]" : "text-white"}`}>
+                    <h1
+                        className="text-3xl font-bold text-white"
+                        style={{ textShadow: '0 2px 8px rgba(0,0,0,0.5)' }}
+                    >
                         My Requests
                     </h1>
-                    <p className={theme === "light" ? "text-gray-600" : "text-gray-400"}>
+                    <p
+                        className="text-white/80"
+                        style={{ textShadow: '0 1px 4px rgba(0,0,0,0.4)' }}
+                    >
                         Track the status of your service requests.
                     </p>
                 </motion.div>
@@ -139,34 +145,54 @@ export default function RequestsPage() {
                                     key={request.id}
                                     initial={{ opacity: 0, x: -20 }}
                                     animate={{ opacity: 1, x: 0 }}
-                                    whileHover={{ scale: 1.02, y: -2 }}
+                                    whileHover={{ scale: 1.02, y: -5 }}
+                                    whileTap={{ scale: 0.98 }}
                                     transition={{ delay: index * 0.1 }}
-                                    className={`relative overflow-hidden rounded-xl border p-6 backdrop-blur-sm transition-all ${
-                                        theme === "light"
-                                            ? `${config.borderLight} ${config.bgLight} hover:shadow-lg`
-                                            : `${config.borderDark} ${config.bgDark} hover:bg-opacity-20`
-                                    }`}
+                                    className={`group relative h-full overflow-hidden rounded-2xl border p-6 transition-all duration-300 ${theme === "light"
+                                        ? "border-white/40 hover:border-white/60"
+                                        : "border-white/10 hover:border-white/20"
+                                        }`}
+                                    style={theme === "dark" ? {
+                                        background: 'linear-gradient(145deg, #1a1a1a 0%, #0d0d0d 50%, #1a1a1a 100%)',
+                                        boxShadow: '0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08)',
+                                    } : {
+                                        background: 'linear-gradient(145deg, rgba(255,255,255,0.7) 0%, rgba(240,240,245,0.5) 50%, rgba(255,255,255,0.6) 100%)',
+                                        boxShadow: '0 8px 32px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.9)',
+                                        backdropFilter: 'blur(20px) saturate(180%)',
+                                    }}
                                 >
-                                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                                    {/* Shiny overlay effect */}
+                                    <div
+                                        className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                                        style={theme === "dark" ? {
+                                            background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 50%, rgba(255,255,255,0.05) 100%)',
+                                        } : {
+                                            background: 'linear-gradient(135deg, rgba(255,255,255,0.4) 0%, transparent 40%, rgba(200,200,220,0.2) 100%)',
+                                        }}
+                                    />
+
+                                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between relative z-10">
                                         <div>
-                                            <h3 className={`mb-1 text-lg font-semibold ${theme === "light" ? "text-[#123A9C]" : "text-white"}`}>
+                                            <h3 className={`mb-1 text-lg font-semibold transition-colors ${theme === "light" ? "text-gray-800 group-hover:text-[#E0562B]" : "text-white group-hover:text-[#EFA163]"}`}>
                                                 {formatServiceType(request.service_type)}
                                             </h3>
                                             <p className={`text-sm line-clamp-1 ${theme === "light" ? "text-gray-600" : "text-gray-400"}`}>
                                                 {request.requirements_text}
                                             </p>
-                                            <span className={`mt-2 inline-block text-xs ${theme === "light" ? "text-gray-500" : "text-gray-500"}`}>
+                                            <span className="mt-2 inline-block text-xs text-gray-500">
                                                 {new Date(request.created_at).toLocaleDateString()}
                                             </span>
                                         </div>
 
-                                        <div className={`flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium whitespace-nowrap ${ 
-                                            theme === "light" ? config.colorLight : config.colorDark
-                                        } ${theme === "light" ? "bg-white/80" : "bg-black/20"}`}>
+                                        <div className={`flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium whitespace-nowrap ${theme === "light" ? config.colorLight : config.colorDark
+                                            } ${theme === "light" ? "bg-white/80" : "bg-black/30"}`}>
                                             <StatusIcon size={16} />
                                             {config.label}
                                         </div>
                                     </div>
+
+                                    {/* Glow Effect */}
+                                    <div className={`absolute -right-20 -top-20 h-40 w-40 rounded-full blur-3xl transition-opacity group-hover:opacity-50 ${theme === "light" ? "bg-[#E0562B]/15" : "bg-[#E0562B]/10"}`} />
                                 </motion.div>
                             );
                         })}
