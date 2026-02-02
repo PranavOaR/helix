@@ -103,7 +103,10 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
             {/* Fixed Background Image */}
             <div
                 className="fixed inset-0 -z-20 bg-cover bg-center bg-no-repeat"
-                style={{ backgroundImage: "url('/dashboard-bg.png')" }}
+                style={{
+                    backgroundImage: "url('/dashboard-bg.png')",
+                    backgroundColor: "#0a0a0a"
+                }}
             />
 
             <DashboardNav />

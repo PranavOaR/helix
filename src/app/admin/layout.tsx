@@ -23,7 +23,8 @@ function AdminContent({ children }: { children: React.ReactNode }) {
                     backgroundImage: 'url("/dashboard-bg.png")',
                     backgroundSize: 'cover',
                     backgroundPosition: 'center',
-                    backgroundAttachment: 'fixed'
+                    backgroundRepeat: 'no-repeat',
+                    backgroundColor: '#0a0a0a'
                 }}
             />
 
