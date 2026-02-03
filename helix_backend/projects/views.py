@@ -4,8 +4,14 @@ API Views for Helix Platform - Stage 1
 Endpoints:
 - POST /api/projects/create/ - Create a new project (authenticated)
 - GET /api/projects/my-projects/ - Get all projects for authenticated user
+- GET /api/projects/<id>/ - Get specific project (authenticated, owner only)
+- GET /api/projects/health/ - Health check (public)
+- GET /api/projects/user/profile/ - Get user profile with role (authenticated)
+- GET /api/projects/all/ - Get all projects (admin only)
+- PATCH /api/projects/<id>/update-status/ - Update project status (admin only)
 """
 
+import logging
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -19,6 +25,9 @@ from .serializers import (
     ProjectListSerializer,
     BrandProfileSerializer
 )
+from authentication.firebase_auth import require_admin
+
+logger = logging.getLogger(__name__)
 
 
 @api_view(['POST'])
@@ -248,10 +257,18 @@ def get_user_profile(request):
             "brand_name": "My Brand",
             "role": "USER"
         }
+    
+    Role determination priority:
+    1. Firebase custom claims (admin: true)
+    2. Database Brand.role field
+    3. Default: USER
     """
-    firebase_uid = str(request.user)
-    token_data = request.auth
-    email = token_data.get('email', '') if token_data else ''
+    firebase_user = request.user
+    firebase_uid = firebase_user.uid
+    email = firebase_user.email or ''
+    
+    # Log for debugging
+    logger.info(f"[PROFILE] Fetching profile for: {email}, is_admin_claim: {firebase_user.is_admin_claim}")
     
     try:
         # First, try to find existing user by email (for pre-configured accounts)
@@ -260,10 +277,12 @@ def get_user_profile(request):
             brand = Brand.objects.get(email=email)
             # Update UID if it's different (e.g., from placeholder to real Firebase UID)
             if brand.uid != firebase_uid:
+                logger.info(f"[PROFILE] Updating UID for {email}: {brand.uid[:8]}... -> {firebase_uid[:8]}...")
                 brand.uid = firebase_uid
                 brand.save()
         except Brand.DoesNotExist:
             # If not found by email, try to get or create by UID
+            token_data = request.auth
             brand, created = Brand.objects.get_or_create(
                 uid=firebase_uid,
                 defaults={
@@ -272,11 +291,28 @@ def get_user_profile(request):
                     'role': 'USER'  # Default role
                 }
             )
+            if created:
+                logger.info(f"[PROFILE] Created new Brand for: {email}")
+        
+        # If user has Firebase admin claim but DB says USER, sync it
+        if firebase_user.is_admin_claim and brand.role != 'ADMIN':
+            logger.info(f"[PROFILE] Syncing admin claim to DB for: {email}")
+            brand.role = 'ADMIN'
+            brand.save(update_fields=['role'])
         
         serializer = BrandProfileSerializer(brand)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        response_data = serializer.data
+        
+        # Override role based on Firebase claims (takes priority)
+        if firebase_user.is_admin_claim:
+            response_data['role'] = 'ADMIN'
+        
+        logger.info(f"[PROFILE] Returning profile for {email}: role={response_data.get('role')}")
+        
+        return Response(response_data, status=status.HTTP_200_OK)
     
     except Exception as e:
+        logger.error(f"[PROFILE] Error fetching profile for {email}: {e}")
         return Response({
             'error': f'Failed to retrieve profile: {str(e)}'
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -284,29 +320,24 @@ def get_user_profile(request):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
+@require_admin
 def get_all_projects(request):
     """
     Get all projects (admin only).
     
     GET /api/projects/all/
     
-    Requires admin role.
+    Requires admin role (via Firebase custom claim or database).
+    Protected by @require_admin decorator.
     """
-    firebase_uid = str(request.user)
+    logger.info(f"[ADMIN] get_all_projects accessed by: {request.user.email}")
     
     try:
-        # Check if user is admin
-        brand = Brand.objects.get(uid=firebase_uid)
-        
-        if brand.role != 'ADMIN':
-            return Response({
-                'success': False,
-                'message': 'Admin access required'
-            }, status=status.HTTP_403_FORBIDDEN)
-        
         # Get all projects
         projects = Project.objects.all().select_related('brand')
         serializer = ProjectListSerializer(projects, many=True)
+        
+        logger.info(f"[ADMIN] Returning {projects.count()} projects")
         
         return Response({
             'success': True,
@@ -314,13 +345,8 @@ def get_all_projects(request):
             'projects': serializer.data
         }, status=status.HTTP_200_OK)
     
-    except Brand.DoesNotExist:
-        return Response({
-            'success': False,
-            'message': 'User not found'
-        }, status=status.HTTP_404_NOT_FOUND)
-    
     except Exception as e:
+        logger.error(f"[ADMIN] Error in get_all_projects: {e}")
         return Response({
             'success': False,
             'message': f'Failed to retrieve projects: {str(e)}'
@@ -329,6 +355,7 @@ def get_all_projects(request):
 
 @api_view(['PATCH'])
 @permission_classes([IsAuthenticated])
+@require_admin
 def update_project_status(request, project_id):
     """
     Update the status of a project (admin only).
@@ -339,9 +366,12 @@ def update_project_status(request, project_id):
         {
             "status": "ACCEPTED"
         }
+    
+    Requires admin role. Protected by @require_admin decorator.
     """
-    firebase_uid = str(request.user)
     new_status = request.data.get('status')
+    
+    logger.info(f"[ADMIN] update_project_status: project={project_id}, new_status={new_status}, by={request.user.email}")
     
     if not new_status:
         return Response({
@@ -350,15 +380,6 @@ def update_project_status(request, project_id):
         }, status=status.HTTP_400_BAD_REQUEST)
     
     try:
-        # Check if user is admin
-        brand = Brand.objects.get(uid=firebase_uid)
-        
-        if brand.role != 'ADMIN':
-            return Response({
-                'success': False,
-                'message': 'Admin access required'
-            }, status=status.HTTP_403_FORBIDDEN)
-        
         # Update project status
         project = Project.objects.get(id=project_id)
         project.status = new_status.lower()
@@ -366,25 +387,23 @@ def update_project_status(request, project_id):
         
         serializer = ProjectSerializer(project)
         
+        logger.info(f"[ADMIN] Project {project_id} status updated to: {new_status}")
+        
         return Response({
             'success': True,
             'message': 'Status updated successfully',
             'project': serializer.data
         }, status=status.HTTP_200_OK)
     
-    except Brand.DoesNotExist:
-        return Response({
-            'success': False,
-            'message': 'User not found'
-        }, status=status.HTTP_404_NOT_FOUND)
-    
     except Project.DoesNotExist:
+        logger.warning(f"[ADMIN] Project {project_id} not found")
         return Response({
             'success': False,
             'message': 'Project not found'
         }, status=status.HTTP_404_NOT_FOUND)
     
     except Exception as e:
+        logger.error(f"[ADMIN] Error updating project {project_id}: {e}")
         return Response({
             'success': False,
             'message': f'Failed to update status: {str(e)}'
