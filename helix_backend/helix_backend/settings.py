@@ -149,24 +149,6 @@ CORS_ALLOW_HEADERS = [
     'x-requested-with',
 ]
 
-# Firebase Admin SDK Configuration
-FIREBASE_CREDENTIALS_PATH = config(
-    'FIREBASE_CREDENTIALS_PATH',
-    default=str(BASE_DIR / 'firebase-credentials.json')
-)
-
-# Initialize Firebase Admin SDK
-import firebase_admin
-from firebase_admin import credentials
-
-if not firebase_admin._apps:
-    try:
-        cred = credentials.Certificate(FIREBASE_CREDENTIALS_PATH)
-        firebase_admin.initialize_app(cred)
-    except Exception as e:
-        print(f"Warning: Firebase Admin SDK initialization failed: {e}")
-        print("Please ensure firebase-credentials.json is properly configured")
-
 # Logging Configuration
 LOGGING = {
     'version': 1,
