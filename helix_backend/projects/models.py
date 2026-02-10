@@ -7,6 +7,7 @@ Project Model: Stores service requests submitted by brands
 
 from django.db import models
 from django.utils import timezone
+from core.constants import Roles
 
 
 class Brand(models.Model):
@@ -34,15 +35,10 @@ class Brand(models.Model):
     )
     
     # Role field for authorization
-    ROLE_CHOICES = [
-        ('USER', 'User'),
-        ('ADMIN', 'Admin'),
-    ]
-    
     role = models.CharField(
         max_length=10,
-        choices=ROLE_CHOICES,
-        default='USER',
+        choices=Roles.CHOICES,
+        default=Roles.USER,
         help_text="User role for authorization"
     )
     
@@ -63,6 +59,10 @@ class Brand(models.Model):
     
     def __str__(self):
         return f"{self.brand_name} ({self.email})"
+    
+    def is_admin(self):
+        """Check if this brand has admin privileges."""
+        return self.role == Roles.ADMIN
 
 
 class Project(models.Model):
