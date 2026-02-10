@@ -18,8 +18,34 @@ from rest_framework import exceptions
 from rest_framework.response import Response
 from rest_framework import status
 from firebase_admin import auth
+from projects.models import Brand
+from core.constants import Roles
 
 logger = logging.getLogger(__name__)
+
+
+def get_or_create_brand(decoded_token):
+    """
+    Get or create a Brand (user) in the database based on Firebase token.
+    
+    Args:
+        decoded_token: Verified Firebase ID token containing uid and email
+        
+    Returns:
+        Brand: Database Brand object representing the authenticated user
+    """
+    brand, created = Brand.objects.get_or_create(
+        uid=decoded_token["uid"],
+        defaults={
+            "email": decoded_token.get("email", ""),
+            "brand_name": decoded_token.get("name", decoded_token.get("email", "").split("@")[0]),
+        }
+    )
+    
+    if created:
+        logger.info(f"[AUTH] Created new brand for {brand.email}")
+    
+    return brand
 
 
 class FirebaseAuthentication(authentication.BaseAuthentication):
@@ -81,25 +107,17 @@ class FirebaseAuthentication(authentication.BaseAuthentication):
         if not uid:
             raise exceptions.AuthenticationFailed('Token does not contain user ID')
         
-        # Extract user info from token
-        email = decoded_token.get('email', '')
+        # Get or create Brand in database
+        brand = get_or_create_brand(decoded_token)
         
-        # Check for admin custom claim from Firebase
-        # Firebase custom claims are at the root level of decoded token
-        is_admin_claim = decoded_token.get('admin', False)
-        
-        # Create FirebaseUser with all relevant info
-        firebase_user = FirebaseUser(
-            uid=uid,
-            email=email,
-            is_admin_claim=is_admin_claim,
-            decoded_token=decoded_token
-        )
+        # Attach decoded token to brand for access to Firebase claims if needed
+        brand.decoded_token = decoded_token
+        brand.is_authenticated = True
         
         # DEBUG logging (remove in production)
-        logger.info(f"[AUTH] User authenticated: email={email}, uid={uid[:8]}..., admin_claim={is_admin_claim}")
+        logger.info(f"[AUTH] User authenticated: email={brand.email}, uid={uid[:8]}..., role={brand.role}")
         
-        return (firebase_user, decoded_token)
+        return (brand, decoded_token)
     
     def authenticate_header(self, request):
         """
