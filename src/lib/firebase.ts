@@ -5,13 +5,13 @@ import { getAnalytics, isSupported } from "firebase/analytics";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyBbKJ04hydnihWwGhw9WWsy6n0FUFvVnnY",
-  authDomain: "helix-1e1f4.firebaseapp.com",
-  projectId: "helix-1e1f4",
-  storageBucket: "helix-1e1f4.firebasestorage.app",
-  messagingSenderId: "647374059723",
-  appId: "1:647374059723:web:6b100b60d9f18beda9c34e",
-  measurementId: "G-P7QMYKQJQ0"
+  apiKey: "AIzaSyBbONwRnREZPhuvh6rT4_YynD3xVnX4YGI",
+  authDomain: "helix-f5dcf.firebaseapp.com",
+  projectId: "helix-f5dcf",
+  storageBucket: "helix-f5dcf.firebasestorage.app",
+  messagingSenderId: "250874285196",
+  appId: "1:250874285196:web:216fd42385e3e90ebf3fa9",
+  measurementId: "G-F4BYBEN5ZM"
 };
 
 // Initialize Firebase (prevent duplicate initialization)
@@ -31,3 +31,4 @@ export const initAnalytics = async () => {
 };
 
 export default app;
+
