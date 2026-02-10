@@ -312,16 +312,22 @@ export async function getProjectById(projectId: number) {
  */
 export async function getUserProfile(): Promise<UserProfile | null> {
   try {
-    // We treat this one differently as 404/500 shouldn't necessarily throw global UI errors
-    // but rather return null for fallback logic
+    // Use the new /v1/auth/me endpoint
     const token = await getAuthToken();
-    const response = await fetch(`${API_BASE_URL}/projects/user/profile/`, {
+    const response = await fetch(`${API_BASE_URL}/v1/auth/me/`, {
       method: 'GET',
       headers: { 'Authorization': `Bearer ${token}` },
     });
 
     if (!response.ok) return null;
-    return await response.json();
+
+    const data = await response.json();
+    // Map the response to UserProfile format
+    return {
+      id: data.uid,
+      email: data.email,
+      role: data.role as "USER" | "ADMIN"
+    };
   } catch (error) {
     return null;
   }
