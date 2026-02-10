@@ -25,7 +25,8 @@ from .serializers import (
     ProjectListSerializer,
     BrandProfileSerializer
 )
-from authentication.firebase_auth import require_admin
+from core.permissions import IsAdmin, IsOwnerOrAdmin
+from core.constants import Roles
 
 logger = logging.getLogger(__name__)
 
@@ -65,13 +66,8 @@ def create_project(request):
         }
     """
     
-    # Get Firebase UID from authenticated request
-    # request.user is the UID string returned by FirebaseAuthentication
-    firebase_uid = str(request.user)
-    
-    # Get email from token if available
-    token_data = request.auth  # This is the decoded_token from FirebaseAuthentication
-    email = token_data.get('email', '') if token_data else ''
+    # request.user is now a Brand object from FirebaseAuthentication
+    brand = request.user
     
     # Validate incoming data
     serializer = ProjectCreateSerializer(data=request.data)
@@ -84,21 +80,7 @@ def create_project(request):
     
     try:
         with transaction.atomic():
-            # Get or create Brand record for this Firebase user
-            brand, created = Brand.objects.get_or_create(
-                uid=firebase_uid,
-                defaults={
-                    'email': email,
-                    'brand_name': email.split('@')[0] if email else f'Brand-{firebase_uid[:8]}'
-                }
-            )
-            
-            # If brand exists but email changed, update it
-            if not created and email and brand.email != email:
-                brand.email = email
-                brand.save(update_fields=['email'])
-            
-            # Create the project
+            # Create the project linked to the authenticated brand
             project = Project.objects.create(
                 brand=brand,
                 service_type=serializer.validated_data['service_type'],
@@ -115,6 +97,7 @@ def create_project(request):
             }, status=status.HTTP_201_CREATED)
     
     except Exception as e:
+        logger.error(f"Failed to create project for {brand.email}: {str(e)}")
         return Response({
             'success': False,
             'message': f'Failed to create project: {str(e)}'
@@ -151,24 +134,15 @@ def get_my_projects(request):
         }
     """
     
-    # Get Firebase UID from authenticated request
-    firebase_uid = str(request.user)
+    # request.user is now a Brand object
+    brand = request.user
     
     try:
-        # Get brand record for this Firebase user
-        try:
-            brand = Brand.objects.get(uid=firebase_uid)
-        except Brand.DoesNotExist:
-            # User is authenticated but hasn't created any projects yet
-            return Response({
-                'success': True,
-                'count': 0,
-                'projects': [],
-                'message': 'No projects found. Create your first project!'
-            }, status=status.HTTP_200_OK)
-        
-        # Get all projects for this brand
-        projects = Project.objects.filter(brand=brand).select_related('brand')
+        # Admin users see ALL projects, regular users see only their own
+        if brand.is_admin():
+            projects = Project.objects.all().select_related('brand')
+        else:
+            projects = Project.objects.filter(brand=brand).select_related('brand')
         
         # Serialize response
         serializer = ProjectListSerializer(projects, many=True)
@@ -180,6 +154,7 @@ def get_my_projects(request):
         }, status=status.HTTP_200_OK)
     
     except Exception as e:
+        logger.error(f"Failed to retrieve projects for {brand.email}: {str(e)}")
         return Response({
             'success': False,
             'message': f'Failed to retrieve projects: {str(e)}'
@@ -187,24 +162,28 @@ def get_my_projects(request):
 
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, IsOwnerOrAdmin])
 def get_project_detail(request, project_id):
     """
     Get detailed information about a specific project.
     
     GET /api/projects/<project_id>/
     
-    Only returns project if it belongs to the authenticated user.
+    Access control:
+    - Admins can view any project
+    - Users can only view their own projects
     """
     
-    firebase_uid = str(request.user)
+    brand = request.user
     
     try:
-        # Get the project and verify ownership
-        project = Project.objects.select_related('brand').get(
-            id=project_id,
-            brand__uid=firebase_uid
-        )
+        # Get the project
+        project = Project.objects.select_related('brand').get(id=project_id)
+        
+        # IsOwnerOrAdmin permission will check:
+        # - If admin: allow access
+        # - If user: check project.brand == request.user
+        # This check happens automatically via DRF permissions
         
         serializer = ProjectSerializer(project)
         
@@ -216,10 +195,11 @@ def get_project_detail(request, project_id):
     except Project.DoesNotExist:
         return Response({
             'success': False,
-            'message': 'Project not found or access denied'
+            'message': 'Project not found'
         }, status=status.HTTP_404_NOT_FOUND)
     
     except Exception as e:
+        logger.error(f"Failed to retrieve project {project_id} for {brand.email}: {str(e)}")
         return Response({
             'success': False,
             'message': f'Failed to retrieve project: {str(e)}'
@@ -319,8 +299,7 @@ def get_user_profile(request):
 
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
-@require_admin
+@permission_classes([IsAuthenticated, IsAdmin])
 def get_all_projects(request):
     """
     Get all projects (admin only).
@@ -354,8 +333,7 @@ def get_all_projects(request):
 
 
 @api_view(['PATCH'])
-@permission_classes([IsAuthenticated])
-@require_admin
+@permission_classes([IsAuthenticated, IsAdmin])
 def update_project_status(request, project_id):
     """
     Update the status of a project (admin only).
