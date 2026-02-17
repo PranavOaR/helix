@@ -2,24 +2,18 @@
 
 import { useEffect, useState } from "react";
 import { getAllProjects, updateProjectStatus } from "@/lib/api";
+import type { ProjectRequest } from "@/lib/api";
 import { motion } from "framer-motion";
 import { Loader2, Search, Filter, RefreshCw } from "lucide-react";
 import StatusDropdown from "@/components/admin/StatusDropdown";
+import PriorityDropdown from "@/components/admin/PriorityDropdown";
 import { useToast } from "@/context/ToastContext";
 import { useTheme } from "@/context/ThemeContext";
 
-// Types
-// Types
-interface ProjectRequest {
-    id: number;
-    service_type: string;
-    status: "PENDING" | "ACCEPTED" | "IMPLEMENTING" | "COMPLETED" | "REJECTED";
-    created_at: string;
-    requirements_text: string;
-    user_email?: string; // Assuming backend returns this for admin
-}
-
-const ALL_STATUSES = ["PENDING", "ACCEPTED", "IMPLEMENTING", "COMPLETED", "REJECTED"];
+const ALL_STATUSES = [
+    "PENDING", "REVIEWING", "IN_PROGRESS", "COMPLETED",
+    "DELIVERED", "CLOSED", "REJECTED", "CANCELLED"
+];
 
 export default function AdminDashboard() {
     const [requests, setRequests] = useState<ProjectRequest[]>([]);
@@ -28,6 +22,7 @@ export default function AdminDashboard() {
     const [filterStatus, setFilterStatus] = useState<string>("ALL");
     const [search, setSearch] = useState("");
     const [updatingId, setUpdatingId] = useState<number | null>(null);
+    const [updatingPriorityId, setUpdatingPriorityId] = useState<number | null>(null);
     const [refreshing, setRefreshing] = useState(false);
     const { showToast } = useToast();
     const { theme } = useTheme();
@@ -47,8 +42,8 @@ export default function AdminDashboard() {
             const lowerSearch = search.toLowerCase();
             result = result.filter(
                 r =>
-                    (r.service_type && r.service_type.toLowerCase().includes(lowerSearch)) ||
-                    (r.requirements_text && r.requirements_text.toLowerCase().includes(lowerSearch)) ||
+                    (r.title && r.title.toLowerCase().includes(lowerSearch)) ||
+                    (r.description && r.description.toLowerCase().includes(lowerSearch)) ||
                     (r.user_email && r.user_email.toLowerCase().includes(lowerSearch))
             );
         }
@@ -73,19 +68,41 @@ export default function AdminDashboard() {
     const handleStatusChange = async (id: number, newStatus: string) => {
         try {
             setUpdatingId(id);
-            await updateProjectStatus(id, newStatus);
+            const result = await updateProjectStatus(id, newStatus);
 
-            // Optimistic update
-            setRequests(prev => prev.map(r =>
-                r.id === id ? { ...r, status: newStatus as any } : r
-            ));
+            // Use server response to update state
+            if (result.request) {
+                setRequests(prev => prev.map(r =>
+                    r.id === id ? { ...r, ...result.request } : r
+                ));
+            }
 
             showToast(`Status updated to ${newStatus}`, "success");
-        } catch (error) {
+        } catch (error: any) {
             console.error("Failed to update status", error);
-            showToast("Failed to update status", "error");
+            showToast(error.message || "Failed to update status", "error");
         } finally {
             setUpdatingId(null);
+        }
+    };
+
+    const handlePriorityChange = async (id: number, newPriority: string) => {
+        try {
+            setUpdatingPriorityId(id);
+            const result = await updateProjectStatus(id, undefined as any, newPriority);
+
+            if (result.request) {
+                setRequests(prev => prev.map(r =>
+                    r.id === id ? { ...r, ...result.request } : r
+                ));
+            }
+
+            showToast(`Priority updated to ${newPriority}`, "success");
+        } catch (error: any) {
+            console.error("Failed to update priority", error);
+            showToast(error.message || "Failed to update priority", "error");
+        } finally {
+            setUpdatingPriorityId(null);
         }
     };
 
@@ -141,12 +158,12 @@ export default function AdminDashboard() {
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                         <input
                             type="text"
-                            placeholder="Search by email, service, or requirements..."
+                            placeholder="Search by email, title, or description..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             className={`w-full rounded-xl border pl-10 pr-4 py-3 placeholder-gray-500 focus:outline-none transition-all ${theme === "light"
-                                    ? "border-white/40 bg-white/70 text-gray-900 focus:border-[#E0562B]"
-                                    : "border-white/10 bg-white/5 text-white focus:border-[#EFA163]"
+                                ? "border-white/40 bg-white/70 text-gray-900 focus:border-[#E0562B]"
+                                : "border-white/10 bg-white/5 text-white focus:border-[#EFA163]"
                                 }`}
                             style={{ backdropFilter: 'blur(10px)' }}
                         />
@@ -157,13 +174,13 @@ export default function AdminDashboard() {
                             value={filterStatus}
                             onChange={(e) => setFilterStatus(e.target.value)}
                             className={`w-full appearance-none rounded-xl border px-4 py-3 focus:outline-none transition-all ${theme === "light"
-                                    ? "border-white/40 bg-white/70 text-gray-900 focus:border-[#E0562B]"
-                                    : "border-white/10 bg-white/5 text-white focus:border-[#EFA163]"
+                                ? "border-white/40 bg-white/70 text-gray-900 focus:border-[#E0562B]"
+                                : "border-white/10 bg-white/5 text-white focus:border-[#EFA163]"
                                 }`}
                             style={{ backdropFilter: 'blur(10px)' }}
                         >
                             <option value="ALL">All Statuses</option>
-                            {ALL_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+                            {ALL_STATUSES.map(s => <option key={s} value={s}>{s.replace("_", " ")}</option>)}
                         </select>
                         <Filter className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
                     </div>
@@ -171,7 +188,7 @@ export default function AdminDashboard() {
 
                 {/* Table */}
                 <div
-                    className={`overflow-hidden rounded-xl border ${theme === "light"
+                    className={`rounded-xl border ${theme === "light"
                         ? "border-white/40 bg-white/70"
                         : "border-white/10 bg-white/5"
                         }`}
@@ -181,14 +198,15 @@ export default function AdminDashboard() {
                         <table className={`w-full text-left text-sm ${theme === "light" ? "text-gray-700" : "text-gray-400"
                             }`}>
                             <thead className={`text-xs uppercase ${theme === "light"
-                                    ? "bg-white/30 text-gray-800 font-bold"
-                                    : "bg-white/5 text-gray-300"
+                                ? "bg-white/30 text-gray-800 font-bold"
+                                : "bg-white/5 text-gray-300"
                                 }`}>
                                 <tr>
                                     <th className="px-6 py-4">ID</th>
                                     <th className="px-6 py-4">User</th>
-                                    <th className="px-6 py-4">Service</th>
-                                    <th className="px-6 py-4">Requested</th>
+                                    <th className="px-6 py-4">Request</th>
+                                    <th className="px-6 py-4">Priority</th>
+                                    <th className="px-6 py-4">Created</th>
                                     <th className="px-6 py-4">Status</th>
                                 </tr>
                             </thead>
@@ -196,14 +214,14 @@ export default function AdminDashboard() {
                                 }`}>
                                 {loading ? (
                                     <tr>
-                                        <td colSpan={5} className="px-6 py-12 text-center">
+                                        <td colSpan={6} className="px-6 py-12 text-center">
                                             <Loader2 className={`mx-auto h-8 w-8 animate-spin ${theme === "light" ? "text-[#E0562B]" : "text-[#EFA163]"
                                                 }`} />
                                         </td>
                                     </tr>
                                 ) : filteredRequests.length === 0 ? (
                                     <tr>
-                                        <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
+                                        <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
                                             No requests found matching your filters.
                                         </td>
                                     </tr>
@@ -217,8 +235,15 @@ export default function AdminDashboard() {
                                             </td>
                                             <td className="px-6 py-4">
                                                 <span className={`block font-semibold ${theme === "light" ? "text-gray-900" : "text-white"
-                                                    }`}>{request.service_type}</span>
-                                                <span className="truncate block max-w-xs text-xs text-gray-500">{request.requirements_text}</span>
+                                                    }`}>{request.title}</span>
+                                                <span className="truncate block max-w-xs text-xs text-gray-500">{request.description}</span>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <PriorityDropdown
+                                                    currentPriority={request.priority as any}
+                                                    loading={updatingPriorityId === request.id}
+                                                    onPriorityChange={(newPriority) => handlePriorityChange(request.id, newPriority)}
+                                                />
                                             </td>
                                             <td className="px-6 py-4">
                                                 {new Date(request.created_at).toLocaleDateString()}
