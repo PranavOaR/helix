@@ -2,43 +2,52 @@
 
 import { useEffect, useState } from "react";
 import { getMyProjects } from "@/lib/api";
+import type { ProjectRequest } from "@/lib/api";
 import { motion } from "framer-motion";
-import { Loader2, Clock, CheckCircle, AlertCircle, PlayCircle, XCircle } from "lucide-react";
+import { Loader2, Clock, CheckCircle, AlertCircle, PlayCircle, XCircle, Eye, Truck, Archive, Ban } from "lucide-react";
 import { useTheme } from "@/context/ThemeContext";
 
-// Types matching the backend response
-interface ProjectRequest {
-    id: number;
-    service_type: string;
-    status: "PENDING" | "ACCEPTED" | "IMPLEMENTING" | "COMPLETED" | "REJECTED";
-    created_at: string;
-    requirements_text: string;
-}
-
-const statusConfig = {
+const statusConfig: Record<string, {
+    colorLight: string; colorDark: string;
+    bgLight: string; bgDark: string;
+    borderLight: string; borderDark: string;
+    icon: any; label: string;
+}> = {
     PENDING: {
         colorLight: "text-yellow-600", colorDark: "text-yellow-400",
         bgLight: "bg-yellow-50", bgDark: "bg-yellow-400/10",
         borderLight: "border-yellow-200", borderDark: "border-yellow-400/20",
         icon: Clock, label: "Pending"
     },
-    ACCEPTED: {
-        colorLight: "text-green-600", colorDark: "text-green-400",
-        bgLight: "bg-green-50", bgDark: "bg-green-400/10",
-        borderLight: "border-green-200", borderDark: "border-green-400/20",
-        icon: CheckCircle, label: "Accepted"
+    REVIEWING: {
+        colorLight: "text-purple-600", colorDark: "text-purple-400",
+        bgLight: "bg-purple-50", bgDark: "bg-purple-400/10",
+        borderLight: "border-purple-200", borderDark: "border-purple-400/20",
+        icon: Eye, label: "Reviewing"
     },
-    IMPLEMENTING: {
+    IN_PROGRESS: {
         colorLight: "text-blue-600", colorDark: "text-blue-400",
         bgLight: "bg-blue-50", bgDark: "bg-blue-400/10",
         borderLight: "border-blue-200", borderDark: "border-blue-400/20",
         icon: PlayCircle, label: "In Progress"
     },
     COMPLETED: {
-        colorLight: "text-[#E0562B]", colorDark: "text-[#EFA163]",
-        bgLight: "bg-orange-50", bgDark: "bg-[#E0562B]/10",
-        borderLight: "border-orange-200", borderDark: "border-[#E0562B]/20",
+        colorLight: "text-emerald-600", colorDark: "text-emerald-400",
+        bgLight: "bg-emerald-50", bgDark: "bg-emerald-400/10",
+        borderLight: "border-emerald-200", borderDark: "border-emerald-400/20",
         icon: CheckCircle, label: "Completed"
+    },
+    DELIVERED: {
+        colorLight: "text-cyan-600", colorDark: "text-cyan-400",
+        bgLight: "bg-cyan-50", bgDark: "bg-cyan-400/10",
+        borderLight: "border-cyan-200", borderDark: "border-cyan-400/20",
+        icon: Truck, label: "Delivered"
+    },
+    CLOSED: {
+        colorLight: "text-gray-600", colorDark: "text-gray-400",
+        bgLight: "bg-gray-50", bgDark: "bg-gray-400/10",
+        borderLight: "border-gray-200", borderDark: "border-gray-400/20",
+        icon: Archive, label: "Closed"
     },
     REJECTED: {
         colorLight: "text-red-600", colorDark: "text-red-400",
@@ -46,18 +55,13 @@ const statusConfig = {
         borderLight: "border-red-200", borderDark: "border-red-400/20",
         icon: XCircle, label: "Rejected"
     },
+    CANCELLED: {
+        colorLight: "text-orange-600", colorDark: "text-orange-400",
+        bgLight: "bg-orange-50", bgDark: "bg-orange-400/10",
+        borderLight: "border-orange-200", borderDark: "border-orange-400/20",
+        icon: Ban, label: "Cancelled"
+    },
 };
-
-function formatServiceType(type: string) {
-    const map: Record<string, string> = {
-        website: "Website Development",
-        uiux: "UI/UX Design",
-        branding: "Branding",
-        app: "Mobile App",
-        canva: "Canva Design"
-    };
-    return map[type] || type;
-}
 
 export default function RequestsPage() {
     const [requests, setRequests] = useState<ProjectRequest[]>([]);
@@ -115,8 +119,8 @@ export default function RequestsPage() {
                 ) : error ? (
                     <div
                         className={`rounded-2xl border p-12 text-center ${theme === "light"
-                                ? "border-red-200 bg-red-50"
-                                : "border-white/10"
+                            ? "border-red-200 bg-red-50"
+                            : "border-white/10"
                             }`}
                         style={theme === "dark" ? {
                             background: 'linear-gradient(145deg, #1a1a1a 0%, #0d0d0d 50%, #1a1a1a 100%)',
@@ -134,8 +138,8 @@ export default function RequestsPage() {
                 ) : requests.length === 0 ? (
                     <div
                         className={`rounded-2xl border p-12 text-center backdrop-blur-sm ${theme === "light"
-                                ? "border-gray-200 bg-white shadow-lg"
-                                : "border-white/10"
+                            ? "border-gray-200 bg-white shadow-lg"
+                            : "border-white/10"
                             }`}
                         style={theme === "dark" ? {
                             background: 'linear-gradient(145deg, #1a1a1a 0%, #0d0d0d 50%, #1a1a1a 100%)',
@@ -192,14 +196,23 @@ export default function RequestsPage() {
                                     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between relative z-10">
                                         <div>
                                             <h3 className={`mb-1 text-lg font-semibold transition-colors ${theme === "light" ? "text-gray-800 group-hover:text-[#E0562B]" : "text-white group-hover:text-[#EFA163]"}`}>
-                                                {formatServiceType(request.service_type)}
+                                                {request.title}
                                             </h3>
                                             <p className={`text-sm line-clamp-1 ${theme === "light" ? "text-gray-600" : "text-gray-400"}`}>
-                                                {request.requirements_text}
+                                                {request.description}
                                             </p>
-                                            <span className="mt-2 inline-block text-xs text-gray-500">
-                                                {new Date(request.created_at).toLocaleDateString()}
-                                            </span>
+                                            <div className="mt-2 flex items-center gap-3">
+                                                <span className="text-xs text-gray-500">
+                                                    {new Date(request.created_at).toLocaleDateString()}
+                                                </span>
+                                                <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${request.priority === "URGENT" ? "text-red-400 bg-red-400/10" :
+                                                        request.priority === "HIGH" ? "text-orange-400 bg-orange-400/10" :
+                                                            request.priority === "MEDIUM" ? "text-yellow-400 bg-yellow-400/10" :
+                                                                "text-gray-400 bg-gray-400/10"
+                                                    }`}>
+                                                    {request.priority}
+                                                </span>
+                                            </div>
                                         </div>
 
                                         <div className={`flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium whitespace-nowrap ${theme === "light" ? config.colorLight : config.colorDark

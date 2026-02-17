@@ -2,38 +2,25 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { createProject, getMyProjects, healthCheck } from '@/lib/api';
+import { createProject, getMyProjects } from '@/lib/api';
 
 export default function BackendTestPage() {
   const { user } = useAuth();
-  const [healthStatus, setHealthStatus] = useState<any>(null);
   const [projects, setProjects] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [token, setToken] = useState('');
 
-  // Service type and requirements for creating a project
-  const [serviceType, setServiceType] = useState<'website' | 'uiux' | 'branding' | 'app' | 'canva'>('website');
-  const [requirements, setRequirements] = useState('');
+  // Fields for creating a request
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [priority, setPriority] = useState<'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'>('MEDIUM');
 
   useEffect(() => {
-    // Check backend health on load
-    checkHealth();
-    
-    // Get Firebase token if user is logged in
     if (user) {
       user.getIdToken().then(setToken).catch(console.error);
     }
   }, [user]);
-
-  const checkHealth = async () => {
-    try {
-      const health = await healthCheck();
-      setHealthStatus(health);
-    } catch (err: any) {
-      setError('Backend health check failed: ' + err.message);
-    }
-  };
 
   const handleCreateProject = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,13 +32,14 @@ export default function BackendTestPage() {
     setLoading(true);
     setError('');
     try {
-      const result = await createProject(serviceType, requirements);
-      console.log('Project created:', result);
-      alert('Project created successfully!');
-      setRequirements('');
-      loadProjects(); // Reload projects
+      const result = await createProject(title, description, priority);
+      console.log('Request created:', result);
+      alert('Request created successfully!');
+      setTitle('');
+      setDescription('');
+      loadProjects();
     } catch (err: any) {
-      setError('Failed to create project: ' + err.message);
+      setError('Failed to create request: ' + err.message);
     } finally {
       setLoading(false);
     }
@@ -69,7 +57,7 @@ export default function BackendTestPage() {
       const userProjects = await getMyProjects();
       setProjects(userProjects);
     } catch (err: any) {
-      setError('Failed to load projects: ' + err.message);
+      setError('Failed to load requests: ' + err.message);
     } finally {
       setLoading(false);
     }
@@ -79,22 +67,6 @@ export default function BackendTestPage() {
     <div className="min-h-screen bg-gray-50 py-12 px-4">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-3xl font-bold mb-8">Backend Integration Test</h1>
-
-        {/* Health Check */}
-        <div className="bg-white rounded-lg shadow p-6 mb-6">
-          <h2 className="text-xl font-semibold mb-4">Backend Health Check</h2>
-          {healthStatus ? (
-            <div className="text-green-600">
-              ✅ Status: {healthStatus.status}
-              <br />
-              Message: {healthStatus.message}
-              <br />
-              Version: {healthStatus.version}
-            </div>
-          ) : (
-            <div className="text-red-600">❌ Backend not responding</div>
-          )}
-        </div>
 
         {/* User Auth Status */}
         <div className="bg-white rounded-lg shadow p-6 mb-6">
@@ -118,39 +90,51 @@ export default function BackendTestPage() {
           )}
         </div>
 
-        {/* Create Project Form */}
+        {/* Create Request Form */}
         {user && (
           <div className="bg-white rounded-lg shadow p-6 mb-6">
-            <h2 className="text-xl font-semibold mb-4">Create New Project</h2>
+            <h2 className="text-xl font-semibold mb-4">Create New Request</h2>
             <form onSubmit={handleCreateProject} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-2">Service Type</label>
-                <select
-                  value={serviceType}
-                  onChange={(e) => setServiceType(e.target.value as any)}
+                <label className="block text-sm font-medium mb-2">Title</label>
+                <input
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
                   className="w-full p-2 border rounded"
+                  placeholder="Request title..."
+                  required
                   disabled={loading}
-                >
-                  <option value="website">Website Development</option>
-                  <option value="uiux">UI/UX Design</option>
-                  <option value="branding">Branding</option>
-                  <option value="app">App Development</option>
-                  <option value="canva">Canva Design</option>
-                </select>
+                />
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">Requirements</label>
+                <label className="block text-sm font-medium mb-2">Description</label>
                 <textarea
-                  value={requirements}
-                  onChange={(e) => setRequirements(e.target.value)}
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
                   className="w-full p-2 border rounded"
                   rows={4}
-                  placeholder="Describe your project requirements..."
+                  placeholder="Describe your request (min 10 characters)..."
                   required
                   minLength={10}
                   disabled={loading}
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Priority</label>
+                <select
+                  value={priority}
+                  onChange={(e) => setPriority(e.target.value as any)}
+                  className="w-full p-2 border rounded"
+                  disabled={loading}
+                >
+                  <option value="LOW">Low</option>
+                  <option value="MEDIUM">Medium</option>
+                  <option value="HIGH">High</option>
+                  <option value="URGENT">Urgent</option>
+                </select>
               </div>
 
               <button
@@ -158,23 +142,23 @@ export default function BackendTestPage() {
                 disabled={loading}
                 className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 disabled:bg-gray-400"
               >
-                {loading ? 'Creating...' : 'Create Project'}
+                {loading ? 'Creating...' : 'Create Request'}
               </button>
             </form>
           </div>
         )}
 
-        {/* My Projects */}
+        {/* My Requests */}
         {user && (
           <div className="bg-white rounded-lg shadow p-6 mb-6">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold">My Projects</h2>
+              <h2 className="text-xl font-semibold">My Requests</h2>
               <button
                 onClick={loadProjects}
                 disabled={loading}
                 className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:bg-gray-400"
               >
-                {loading ? 'Loading...' : 'Load Projects'}
+                {loading ? 'Loading...' : 'Load Requests'}
               </button>
             </div>
 
@@ -185,23 +169,23 @@ export default function BackendTestPage() {
                     <div className="flex justify-between items-start mb-2">
                       <div>
                         <span className="font-semibold">#{project.id}</span>
-                        <span className="ml-2 text-blue-600">{project.service_type_display}</span>
+                        <span className="ml-2 text-blue-600">{project.title}</span>
                       </div>
                       <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded text-sm">
-                        {project.status_display}
+                        {project.status_display || project.status}
                       </span>
                     </div>
                     <p className="text-sm text-gray-600 mb-2">
-                      Brand: {project.brand_name}
+                      {project.description}
                     </p>
                     <p className="text-sm text-gray-500">
-                      Created: {new Date(project.created_at).toLocaleDateString()}
+                      Priority: {project.priority} · Created: {new Date(project.created_at).toLocaleDateString()}
                     </p>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-gray-500">No projects yet. Create one above!</p>
+              <p className="text-gray-500">No requests yet. Create one above!</p>
             )}
           </div>
         )}
@@ -220,7 +204,7 @@ export default function BackendTestPage() {
             Backend URL: <code className="bg-white px-2 py-1 rounded">http://localhost:8000</code>
           </p>
           <p className="text-sm text-gray-700 mt-2">
-            To start backend: <code className="bg-white px-2 py-1 rounded">cd helix_backend && source venv/bin/activate && python manage.py runserver 8000</code>
+            To start backend: <code className="bg-white px-2 py-1 rounded">cd helix_backend && python manage.py runserver 8000</code>
           </p>
         </div>
       </div>

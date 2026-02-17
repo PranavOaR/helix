@@ -42,19 +42,11 @@ export default function ServiceDetailsPage() {
         setError(null);
 
         try {
-            // Combine all form data into requirements text
-            const requirements = `
-Name: ${formData.firstName} ${formData.lastName}
-Brand: ${formData.brandName}
+            // Build title from service + brand, description from form details
+            const title = `${service.name} — ${formData.brandName}`;
+            const description = `Name: ${formData.firstName} ${formData.lastName}\nBrand: ${formData.brandName}\n\nBrand Details:\n${formData.brandDetails}\n\nProject Description:\n${formData.projectDescription}`.trim();
 
-Brand Details:
-${formData.brandDetails}
-
-Project Description:
-${formData.projectDescription}
-            `.trim();
-
-            await createProject(service.id as any, requirements);
+            await createProject(title, description);
             router.push("/dashboard/requests");
         } catch (err: any) {
             setError(err.message || "Failed to submit request");
@@ -90,11 +82,10 @@ ${formData.projectDescription}
                 animate={{ opacity: 1, y: 0 }}
                 className="w-full max-w-2xl"
             >
-                <Link 
-                    href="/dashboard" 
-                    className={`mb-8 inline-flex items-center text-sm transition-colors ${
-                        theme === "light" ? "text-gray-600 hover:text-[#E0562B]" : "text-gray-400 hover:text-white"
-                    }`}
+                <Link
+                    href="/dashboard"
+                    className={`mb-8 inline-flex items-center text-sm transition-colors ${theme === "light" ? "text-gray-600 hover:text-[#E0562B]" : "text-gray-400 hover:text-white"
+                        }`}
                 >
                     <ArrowLeft size={16} className="mr-2" />
                     Back to Services
@@ -109,17 +100,15 @@ ${formData.projectDescription}
                     </p>
                 </div>
 
-                <div className={`rounded-2xl border p-8 backdrop-blur-sm ${
-                    theme === "light"
+                <div className={`rounded-2xl border p-8 backdrop-blur-sm ${theme === "light"
                         ? "border-gray-200 bg-white shadow-lg"
                         : "border-white/10 bg-white/5"
-                }`}>
+                    }`}>
                     {error && (
-                        <div className={`mb-6 rounded-lg p-4 text-sm ${
-                            theme === "light"
+                        <div className={`mb-6 rounded-lg p-4 text-sm ${theme === "light"
                                 ? "bg-red-50 text-red-600"
                                 : "bg-red-500/10 text-red-400"
-                        }`}>
+                            }`}>
                             {error}
                         </div>
                     )}

@@ -1,8 +1,8 @@
 /**
- * Helix Backend API Integration
+ * Helix Backend API Integration — Phase 2
  * 
- * This file contains all API calls to the Django backend.
- * Includes global error handling and centralized fetch logic.
+ * All API calls to the Django backend.
+ * Updated to use the new /requests/ and /admin/requests/ endpoints.
  */
 
 import { getAuth, signOut } from 'firebase/auth';
@@ -21,17 +21,34 @@ export interface Service {
 
 export interface ProjectRequest {
   id: number;
-  service_type: string;
-  status: "PENDING" | "ACCEPTED" | "IMPLEMENTING" | "COMPLETED" | "REJECTED";
+  title: string;
+  description: string;
+  status: "PENDING" | "REVIEWING" | "IN_PROGRESS" | "COMPLETED" | "DELIVERED" | "CLOSED" | "REJECTED" | "CANCELLED";
+  status_display: string;
+  priority: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
+  priority_display: string;
+  user_email: string;
+  assigned_to: number | null;
+  assigned_to_email: string | null;
+  is_terminal: boolean;
   created_at: string;
-  requirements_text: string;
-  user_email?: string;
+  updated_at: string;
 }
 
 export interface UserProfile {
   id: string;
   email: string;
   role: "USER" | "ADMIN";
+}
+
+export interface RequestActivity {
+  id: number;
+  action: string;
+  action_display: string;
+  detail: string;
+  performed_by: number;
+  performed_by_email: string;
+  timestamp: string;
 }
 
 // --- Helpers ---
@@ -57,148 +74,6 @@ async function fetchWithAuth(endpoint: string, options: RequestInit = {}) {
   try {
     const token = await getAuthToken();
 
-    // --- Dev Mode Bypass ---
-    if (token === 'dev-token') {
-      console.log(`[Dev Mode] Mocking request to: ${endpoint}`);
-      await new Promise(resolve => setTimeout(resolve, 600)); // Simulate latency
-
-      // Mock Data Routing
-      if (endpoint === '/projects/create/') {
-        const body = JSON.parse(options.body as string);
-        return {
-          success: true,
-          message: 'Project created successfully (Dev Mode)',
-          project: {
-            id: Math.floor(Math.random() * 1000),
-            brand: 1,
-            brand_name: 'Dev Brand',
-            brand_email: 'user@local',
-            service_type: body.service_type,
-            requirements_text: body.requirements_text,
-            status: 'submitted',
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          }
-        };
-      }
-
-      if (endpoint === '/projects/my-projects/') {
-        return {
-          success: true,
-          count: 3,
-          projects: [
-            {
-              id: 101,
-              brand_name: 'Dev User Brand',
-              service_type: 'website',
-              service_type_display: 'Website Development',
-              status: 'submitted',
-              status_display: 'Submitted',
-              created_at: new Date(Date.now() - 86400000).toISOString()
-            },
-            {
-              id: 102,
-              brand_name: 'Dev User Brand',
-              service_type: 'app',
-              service_type_display: 'Mobile App',
-              status: 'in_progress',
-              status_display: 'In Progress',
-              created_at: new Date(Date.now() - 172800000).toISOString()
-            },
-            {
-              id: 103,
-              brand_name: 'Dev User Brand',
-              service_type: 'uiux',
-              service_type_display: 'UI/UX Design',
-              status: 'completed',
-              status_display: 'Completed',
-              created_at: new Date(Date.now() - 259200000).toISOString()
-            }
-          ]
-        };
-      }
-
-      if (endpoint === '/projects/user/profile/') {
-        const isDevAdmin = localStorage.getItem('helix_dev_mode') === 'admin';
-        return {
-          email: isDevAdmin ? 'admin@local' : 'user@local',
-          brand_name: isDevAdmin ? 'Dev Admin Brand' : 'Dev User Brand',
-          role: isDevAdmin ? 'ADMIN' : 'USER'
-        };
-      }
-
-      if (endpoint === '/projects/all/') {
-        return {
-          success: true,
-          count: 5,
-          projects: [
-            {
-              id: 101,
-              brand_name: 'Alice Corp',
-              service_type: 'website',
-              service_type_display: 'Website Development',
-              status: 'submitted',
-              status_display: 'Submitted',
-              created_at: new Date(Date.now() - 3600000).toISOString()
-            },
-            {
-              id: 102,
-              brand_name: 'Bob Inc',
-              service_type: 'branding',
-              service_type_display: 'Branding',
-              status: 'in_review',
-              status_display: 'In Review',
-              created_at: new Date(Date.now() - 7200000).toISOString()
-            },
-            {
-              id: 103,
-              brand_name: 'Charlie Co',
-              service_type: 'app',
-              service_type_display: 'Mobile App',
-              status: 'in_progress',
-              status_display: 'In Progress',
-              created_at: new Date(Date.now() - 10800000).toISOString()
-            },
-            {
-              id: 104,
-              brand_name: 'Delta Group',
-              service_type: 'uiux',
-              service_type_display: 'UI/UX Design',
-              status: 'completed',
-              status_display: 'Completed',
-              created_at: new Date(Date.now() - 14400000).toISOString()
-            },
-            {
-              id: 105,
-              brand_name: 'Echo Ltd',
-              service_type: 'canva',
-              service_type_display: 'Canva Design',
-              status: 'rejected',
-              status_display: 'Rejected',
-              created_at: new Date(Date.now() - 18000000).toISOString()
-            }
-          ]
-        };
-      }
-
-      if (endpoint.includes('/update-status/')) {
-        const body = JSON.parse(options.body as string);
-        return {
-          success: true,
-          message: 'Status updated successfully (Dev Mode)',
-          project: {
-            id: 123,
-            status: body.status,
-            // simplified return
-          }
-        }
-      }
-
-      throw new Error(`[Dev Mode] Endpoint not mocked: ${endpoint}`);
-    }
-
-    // --- End Dev Mode Bypass ---
-
     const headers = {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json',
@@ -212,13 +87,12 @@ async function fetchWithAuth(endpoint: string, options: RequestInit = {}) {
 
     // Global Error Handling
     if (response.status === 401) {
-      // Only logout if it's truly an auth error, not a connection issue
       const text = await response.text();
       if (text.includes('auth') || text.includes('token')) {
         console.warn("Unauthorized (401) - Logging out");
         const auth = getAuth();
         await signOut(auth);
-        window.location.href = '/'; // Hard redirect to login
+        window.location.href = '/';
         throw new Error("Session expired. Please login again.");
       }
       throw new Error("Backend authentication error. Please try again.");
@@ -236,7 +110,6 @@ async function fetchWithAuth(endpoint: string, options: RequestInit = {}) {
 
     return await response.json();
   } catch (error: any) {
-    // Don't logout on network errors
     if (error.message && !error.message.includes('Session expired')) {
       console.error(`API Request Failed: ${endpoint}`, error);
     }
@@ -247,17 +120,11 @@ async function fetchWithAuth(endpoint: string, options: RequestInit = {}) {
 // --- Public APIs ---
 
 /**
- * Get available services (Mock or Real)
+ * Get available services (Mock — no backend endpoint)
  */
 export async function getServices(): Promise<Service[]> {
   try {
-    // Check basic connectivity first if real endpoint exists
-    /* 
-    return await fetchWithAuth('/services/', { method: 'GET' });
-    */
-
-    // Fallback Mock Data as per requirements
-    await new Promise(resolve => setTimeout(resolve, 300)); // Simulate network
+    await new Promise(resolve => setTimeout(resolve, 300));
     return [
       { id: "website", name: "Website Development", description: "Custom performant websites", icon: "Globe" },
       { id: "uiux", name: "UI/UX Design", description: "User-centric interface design", icon: "Palette" },
@@ -272,39 +139,28 @@ export async function getServices(): Promise<Service[]> {
 }
 
 /**
- * Create a new project request
+ * Create a new request
  */
 export async function createProject(
-  serviceType: string,
-  requirementsText: string
+  title: string,
+  description: string,
+  priority: string = "MEDIUM"
 ) {
-  return await fetchWithAuth('/projects/create/', {
+  return await fetchWithAuth('/requests/', {
     method: 'POST',
-    body: JSON.stringify({
-      service_type: serviceType,
-      requirements_text: requirementsText,
-    }),
+    body: JSON.stringify({ title, description, priority }),
   });
 }
 
 /**
- * Get all projects for the authenticated user
+ * Get all requests for the authenticated user
  */
 export async function getMyProjects(): Promise<ProjectRequest[]> {
-  const data = await fetchWithAuth('/projects/my-projects/', {
+  const data = await fetchWithAuth('/requests/', {
     method: 'GET',
   });
-  return data.projects || [];
-}
-
-/**
- * Get a specific project by ID
- */
-export async function getProjectById(projectId: number) {
-  const data = await fetchWithAuth(`/projects/${projectId}/`, {
-    method: 'GET',
-  });
-  return data.project;
+  // DRF pagination returns { count, next, previous, results }
+  return data.results || data;
 }
 
 /**
@@ -312,17 +168,7 @@ export async function getProjectById(projectId: number) {
  */
 export async function getUserProfile(): Promise<UserProfile | null> {
   try {
-    // Use the new /v1/auth/me endpoint
-    const token = await getAuthToken();
-    const response = await fetch(`${API_BASE_URL}/v1/auth/me/`, {
-      method: 'GET',
-      headers: { 'Authorization': `Bearer ${token}` },
-    });
-
-    if (!response.ok) return null;
-
-    const data = await response.json();
-    // Map the response to UserProfile format
+    const data = await fetchWithAuth('/auth/me/', { method: 'GET' });
     return {
       id: data.uid,
       email: data.email,
@@ -334,29 +180,56 @@ export async function getUserProfile(): Promise<UserProfile | null> {
 }
 
 /**
- * Get all projects (Admin only)
+ * Get all requests (Admin only)
  */
 export async function getAllProjects(): Promise<ProjectRequest[]> {
-  const data = await fetchWithAuth('/projects/all/', {
+  const data = await fetchWithAuth('/admin/requests/', {
     method: 'GET',
   });
-  return data.projects || data;
+  // DRF pagination returns { count, next, previous, results }
+  return data.results || data;
 }
 
 /**
- * Update project status (Admin only)
+ * Update request status and/or priority (Admin only)
  */
-export async function updateProjectStatus(projectId: number, status: string) {
-  return await fetchWithAuth(`/projects/${projectId}/update-status/`, {
+export async function updateProjectStatus(requestId: number, status?: string, priority?: string) {
+  const body: Record<string, string> = {};
+  if (status) body.status = status;
+  if (priority) body.priority = priority;
+
+  return await fetchWithAuth(`/admin/requests/${requestId}/`, {
     method: 'PATCH',
-    body: JSON.stringify({ status }),
+    body: JSON.stringify(body),
   });
 }
 
 /**
- * Health check - no authentication required
+ * Assign request to admin user (Admin only)
  */
-export async function healthCheck() {
-  const response = await fetch(`${API_BASE_URL}/projects/health/`);
-  return await response.json();
+export async function assignRequest(requestId: number, assignedTo: number | null) {
+  return await fetchWithAuth(`/admin/requests/${requestId}/assign/`, {
+    method: 'POST',
+    body: JSON.stringify({ assigned_to: assignedTo }),
+  });
+}
+
+/**
+ * Get activity log for a request (Admin)
+ */
+export async function getRequestActivities(requestId: number): Promise<RequestActivity[]> {
+  const data = await fetchWithAuth(`/admin/requests/${requestId}/activities/`, {
+    method: 'GET',
+  });
+  return data.results || data;
+}
+
+/**
+ * Get activity log for own request (User)
+ */
+export async function getMyRequestActivities(requestId: number): Promise<RequestActivity[]> {
+  const data = await fetchWithAuth(`/requests/${requestId}/activities/`, {
+    method: 'GET',
+  });
+  return data.results || data;
 }
